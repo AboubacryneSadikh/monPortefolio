@@ -3,120 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <link rel="stylesheet" href="assets/css/style.css">
-    <title>Mon portail </title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <title>Mon portail</title>
 </head>
+
 <body>
-    <header>
-        <nav>
-            <img class="imgProf" src="C:\formation\AWS-ODC\projet-fil-rouge\assets\images\WhatsApp Image 2024-12-04 at 13.23.39 (1) (1).jpeg " alt="Ma photo" srcset="">
-            <ul>
-                <li><a href="index.html">Accueil</a></li>
-                <li><a href="#a-proposID">À propos</a></li>
-                <li><a href="#competenceId">Compétences</a></li>
-                <li><a href="#projetsId">Projets</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-        </nav>
-    </header>
-    <main>
-        <section class="profil" id="a-proposID">
-            <h1>Aboubacryne Sadikh DIOP</h1>
-            <h2>Développeur Full-Stack Junior | Passionné du Cloud & DevOps</h2>
-            <p>Je suis un développeur passionné par la création de solutions innovantes et efficaces. Sur ce site, vous trouverez des informations sur mes compétences, mes projets et comment me contacter. N'hésitez pas à explorer et à me laisser un message !</p>
-        </section>
-        <section id="competenceId" class="competences">
-                <h2>Compétences</h2>
-                <ul>
-                    <li><strong>Langages de programmation :</strong> JavaScript, PHP, Java, C#, Windev & Webdev</li>
-                    <li><strong>Frameworks :</strong> Angular-AngularMaterial, Spring Boot, Laravel</li>
-                    <li><strong>Cloud :</strong> AWS (EC2, S3, Lambda)</li>
-                    <li><strong>DevOps :</strong> Docker, Kubernetes, CI/CD</li>
-                </ul>
-         </section class="projets" >
 
-         <section id="projetsId">
-                <h2>Projets</h2>
-                <a class="ajoutProject" href="pages/ajouter-projet.html">Ajouter un projet</a>
-                <ul>
-                    <li>
-                        <div class="imageProject">
-                                <img src="https://images.ctfassets.net/rz1oowkt5gyp/dpVmczoTMbCYhIvYlxJkt/a24fc18991e38285391851ce79e88050/1_Project_Management_Trello_Board_2x.png" alt="cv" srcset="">
-                        </div>
-                        <div class="titleProject">
-                                 <p></strong> Application de gestion de tâches</p>
-                        </div>
-                        <div class="descProject">
-                            <p>Une application mobile pour la gestion collaborative des tâches conçue avec Flutter avec une architecture moderne....
-                                    - Backend : Node.js avec Express, MongoDB pour la base de données.
-                                    - Frontend : Flutter pour une expérience utilisateur fluide et réactive. <br>
-                                Fonctionnalités clés :
-                                    - Authentification sécurisée (JWT) <br>
-                                    - Création, modification et suppression de tâches <br>
-                                    - Partage de tâches entre utilisateurs <br>
-                                    - Notifications en temps réel</p> <br>
-                                Ce projet m'a permis de renforcer mes compétences en développement mobile, en gestion de bases de données et en intégration d'API RESTful.
-                            </p>
-                            <a href="pages/detailler-projet1.html">détails du projet</a>
-                        </div>
-                    </li>
+<header>
+    <nav class="navbar">
+        <ul>
+            <li><a href="#">Accueil</a></li>
+            <li><a href="#a-proposID">À propos</a></li>
+            <li><a href="#competenceId">Compétences</a></li>
+            <li><a href="#projetsId">Projets</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+</header>
 
-                    <li>
-                            <div class="imageProject">
-                                    <img src="https://www.zohowebstatic.com/sites/zweb/images/creator/app-deck/attendance-tracker-management-software-ss1.png" alt="cv" srcset="">
-                            </div>
-                            <div class="titleProject">
-                                    <p></strong> Application de gestion de projet</p>
-                            </div>
-                            <div class="descProject">
-                                <p>Une application web de gestion de projet développée avec Angular pour le frontend et Spring Boot pour le backend.
-                                        - Backend : Spring Boot avec une architecture RESTful, MySQL pour la base de données.
-                                        - Frontend : Angular avec Angular Material pour une interface utilisateur moderne et responsive. <br>
-                                    Fonctionnalités clés :
-                                        - Authentification sécurisée (JWT) <br>
-                                        - Création, modification et suppression de projets et tâches <br>
-                                        - Attribution de tâches aux membres de l'équipe <br>
-                                        - Suivi du temps et des progrès du projet</p> <br>
-                                    Ce projet m'a permis d'approfondir mes compétences en développement web, en gestion de bases de données relationnelles et en intégration d'API RESTful.
-                                </p>
-                            </div>
-                    </li>
-                </ul>
-                <a href="pages/lister-projets.html">Lister tous les projets</a>
-        </section>
+<main>
 
-    </main>
-    <footer>
-        <form action="pages/validForm.html" method="get" id="contact">
-            <fieldset>
-                <legend>Contactez-nous</legend>
-                <div>
-                    <label for="nameInput" >Votre Nom:</label>
-                    <input required type="text" id="nameInput" name="name" autofocus><br><br>
+    <!-- PROFIL -->
+    <section class="profil" id="a-proposID">
+        <h1>Aboubacryne Sadikh DIOP</h1>
+        <h2>Développeur Full-Stack Junior | Passionné du Cloud & DevOps</h2>
+        <p>
+            Je suis un développeur passionné par la création de solutions innovantes et efficaces.
+        </p>
+    </section>
+
+    <!-- COMPÉTENCES -->
+    <section id="competenceId" class="competences">
+        <h2>Compétences</h2>
+        <ul>
+            <li><strong>Langages :</strong> JavaScript, PHP, Java, C#, Windev & Webdev</li>
+            <li><strong>Frameworks :</strong> Angular, Spring Boot, Laravel</li>
+            <li><strong>Cloud :</strong> AWS (EC2, S3, Lambda)</li>
+            <li><strong>DevOps :</strong> Docker, Kubernetes, CI/CD</li>
+        </ul>
+    </section>
+
+    <!-- PROJETS -->
+    <section id="projetsId" class="projets">
+        <h2>Projets</h2>
+        <p class="subtitle">Mes projets académiques et personnels</p>
+
+        <a class="ajoutProject" href="pages/ajouter-projet.html">Ajouter un projet</a>
+
+        <ul>
+
+            <li>
+                <img class="imageInListProject"
+                     src="https://images.ctfassets.net/rz1oowkt5gyp/dpVmczoTMbCYhIvYlxJkt/a24fc18991e38285391851ce79e88050/1_Project_Management_Trello_Board_2x.png"
+                     alt="Application tâches">
+
+                <div class="titleProject">
+                    <p><strong>Application de gestion de tâches</strong></p>
                 </div>
-                <div>
-                      <label for="emailInput">Votre Email:  </label>
-                      <input required type="email" id="emailInput " name="email"><br><br>
+
+                <div class="descProject">
+                    <p>Application mobile Flutter pour la gestion collaborative.</p>
+                    <a href="pages/details-project/details-projet1.html">Détails</a>
                 </div>
-                 <div>
-                      <label for="emailInput">Mon Email:  </label>
-                      <input required type="email" id="emailInput " name="email" value="diopaboubacryne@gmail.com" readonly><br><br>
+            </li>
+
+            <li>
+                <img class="imageInListProject"
+                     src="https://culture-rh.com/wp-content/uploads/2024/10/logiciel-pointage-kelio-1024x576.png"
+                     alt="Gestion présence">
+
+                <div class="titleProject">
+                    <p><strong>Application de gestion de présences</strong></p>
                 </div>
-                <div>
-                    <label for="messageInput">Votre Message:</label><br>
-                    <textarea  name="message" id="messageInput" cols="30" rows="10"></textarea><br><br>
+
+                <div class="descProject">
+                    <p>Application JavaFX + Spring Boot.</p>
+                    <a href="pages/details-project/details-projet2.html">Détails</a>
                 </div>
-                <label for=""><input type="checkbox" name="" id="" required>J'accepte les conditions</label>
-                <input type="submit" value="Envoyer">
-            </fieldset>
-        </form>
-        <div>
-            <p>Email : diopaboubacryne@gmail.com, Tél : +221 78 525 06 65</p>
-            <p>P5-AWS-2026 Mon Site Web. Tous droits réservés.</p>
-            <address>
-                <p>Ainoumady Extension, Keur massar - Dakar, Sénégal</p>
-            </address>
-        </div>
-    </footer>
+            </li>
+
+        </ul>
+        <a class="detailProjectButtom" href="pages/lister-projets.html">Voir les projets</a>
+    </section>
+
+</main>
+
+<!-- CONTACT -->
+<footer>
+
+    <form action="#" method="get" id="contact">
+        <fieldset>
+            <legend>Contactez-moi</legend>
+
+            <label for="nameInput">Nom</label>
+            <input type="text" id="nameInput" name="name" required>
+
+            <label for="emailUser">Email</label>
+            <input type="email" id="emailUser" name="email" required>
+
+            <label for="messageInput">Message</label>
+            <textarea id="messageInput" name="message" required></textarea>
+
+            <div class="check">
+                <input type="checkbox" id="conditions" required>
+                <label for="conditions">J'accepte les conditions</label>
+            </div>
+
+            <input type="submit" value="Envoyer">
+        </fieldset>
+    </form>
+
+    <div class="infos">
+        <p>Email : diopaboubacryne@gmail.com</p>
+        <p>Tél : +221 78 525 06 65</p>
+        <p>Dakar, Sénégal</p>
+    </div>
+
+</footer>
+
 </body>
 </html>
