@@ -1,0 +1,381 @@
+/* ================= RESET ================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ================= BODY ================= */
+body {
+    font-family: Arial, sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    line-height: 1.6;
+}
+
+/* ================= NAVBAR ================= */
+.navbar {
+    background: #161b22;
+    padding: 15px;
+    position: sticky;
+    top: 0;
+}
+
+.navbar ul {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+}
+
+.navbar li {
+    margin: 0 15px;
+}
+
+.navbar a {
+    color: #58a6ff;
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.navbar a:hover {
+    color: white;
+}
+
+/* ================= PROFIL ================= */
+.profil {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.profil h1 {
+    color: #58a6ff;
+    font-size: 32px;
+}
+
+.profil h2 {
+    margin: 10px 0;
+    color: #8b949e;
+}
+
+/* ================= COMPETENCES ================= */
+.competences {
+    padding: 40px;
+}
+
+.competences h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.competences ul {
+    max-width: 600px;
+    margin: auto;
+}
+
+.competences li {
+    background: #161b22;
+    margin: 10px 0;
+    padding: 12px;
+    border-left: 4px solid #58a6ff;
+    border-radius: 5px;
+}
+
+/* ================= PROJETS ================= */
+.projets {
+    padding: 40px;
+}
+
+.projets h2 {
+    text-align: center;
+}
+
+.subtitle {
+    text-align: center;
+    margin: 10px 0 20px;
+    color: #8b949e;
+}
+
+/* BOUTON */
+.ajoutProject {
+    display: block;
+    margin: 20px auto;
+    background: #238636;
+    color: white;
+    padding: 10px 15px;
+    width: fit-content;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.ajoutProject:hover {
+    background: #2ea043;
+}
+
+/* GRID */
+.projets ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    list-style: none;
+}
+
+/* CARD */
+.projets li {
+    background: #161b22;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    transition: 0.3s;
+}
+
+
+/* IMAGE */
+.imageInListProject {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* TITRE */
+.titleProject {
+    margin-top: 10px;
+    color: #58a6ff;
+}
+
+/* DESCRIPTION */
+.descProject {
+    margin-top: 10px;
+}
+
+.descProject a {
+    display: inline-block;
+    margin-top: 10px;
+    background: #58a6ff;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.descProject a:hover {
+    background: #1f6feb;
+}
+
+/* ================= FOOTER ================= */
+footer {
+    background: #161b22;
+    padding: 40px;
+}
+
+/* ================= FORM ================= */
+form {
+    max-width: 400px;
+    margin: 40px auto;
+}
+
+/* FIELDSET */
+fieldset {
+    border: 1px solid #30363d;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(88,166,255,0.1);
+}
+
+/* LEGEND */
+legend {
+    color: #58a6ff;
+    font-weight: bold;
+}
+
+/* INPUTS */
+input, textarea {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    color: white;
+    border-radius: 6px;
+}
+
+/* FOCUS */
+input:focus, textarea:focus {
+    outline: none;
+    border-color: #58a6ff;
+}
+
+/* CHECKBOX ALIGNEMENT */
+.check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.check input {
+    width: auto;
+}
+
+.check label {
+    color: #c9d1d9;
+}
+
+/* BOUTON */
+input[type="submit"] {
+    background: #58a6ff;
+    border: none;
+    cursor: pointer;
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+input[type="submit"]:hover {
+    background: #1f6feb;
+}
+
+/* ================= INFOS ================= */
+.infos {
+    text-align: center;
+    margin-top: 20px;
+    color: #8b949e;
+}
+/* ================= DETAILS PROJECT ================= */
+.detailsProject {
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    background: #161b22;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+}
+
+/* TITRE */
+.detailsProject .titleProject {
+    text-align: center;
+    color: #58a6ff;
+    margin-bottom: 20px;
+}
+
+/* IMAGE */
+.imageInDetailsProject {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+/* DESCRIPTION */
+.detailsProject .descProject {
+    line-height: 1.8;
+}
+
+.detailsProject ul {
+    margin: 10px 0 20px 20px;
+}
+
+.detailsProject li {
+    margin-bottom: 8px;
+}
+
+/* PAGE AJOUT */
+.addProject {
+    padding: 40px;
+    text-align: center;
+}
+
+.addProject h1 {
+    color: #58a6ff;
+    margin-bottom: 20px;
+}
+
+/* FORM */
+.addProject form {
+    max-width: 400px;
+    margin: auto;
+}
+
+.addProject input,
+.addProject textarea {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    color: white;
+    border-radius: 6px;
+}
+
+.addProject input[type="submit"] {
+    background: #238636;
+    cursor: pointer;
+}
+
+/* PAGE LISTE */
+.listProjects {
+    padding: 40px;
+    text-align: center;
+}
+
+.listProjects h1 {
+    color: #58a6ff;
+    margin-bottom: 30px;
+}
+
+/* GRID déjà utilisé */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+/* CARD */
+.card {
+    background: #161b22;
+    padding: 15px;
+    border-radius: 10px;
+    transition: 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.card h3 {
+    margin: 10px 0;
+    color: #58a6ff;
+}
+
+.card a {
+    display: inline-block;
+    margin-top: 10px;
+    background: #238636;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 5px;
+    text-decoration: none;
+}
+.detailProjectButtom{
+     display: block;
+    margin: 20px auto;
+    background: #58a6ff;
+    color: white;
+    padding: 10px 15px;
+    width: fit-content;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: 0.3s;
+}
