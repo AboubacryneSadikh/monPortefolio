@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../src/css/output.css">
+    <title>Mes Projets</title>
+</head>
+<body class="bg-[#0d1117] text-[#e6edf3] min-h-screen">
+
+<!-- NAVBAR -->
+<nav class="bg-[#161b22] sticky top-0 z-50 border-b border-[#30363d]">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+        <a href="../index.html" class="mono text-[#58a6ff] font-bold text-sm tracking-widest">ASD.</a>
+        <ul class="flex gap-8">
+            <li><a href="../index.html" class="text-sm text-[#e6edf3] hover:text-[#58a6ff] transition-colors">Accueil</a></li>
+            <li><a href="ajouter-projet.html" class="text-sm text-[#e6edf3] hover:text-[#58a6ff] transition-colors">+ Ajouter</a></li>
+        </ul>
+    </div>
+</nav>
+
+<section class="py-16 px-6">
+    <div class="max-w-5xl mx-auto">
+
+        <div class="text-center mb-12">
+            <p class="mono text-[#58a6ff] text-xs tracking-[0.3em] uppercase mb-3">Portfolio</p>
+            <h1 class="text-3xl font-bold text-[#e6edf3] mb-3 mono">Mes Projets</h1>
+            <p class="text-[#8b949e] text-sm">Découvrez mes réalisations académiques et personnelles</p>
+        </div>
+
+        <div class="flex justify-center mb-10">
+            <a href="ajouter-projet.html"
+               class="bg-[#238636] hover:bg-[#2ea043] text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">
+                + Ajouter un projet
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <div class="card-hover bg-[#161b22] rounded-xl overflow-hidden border border-[#30363d]">
+                <img class="w-full h-48 object-cover"
+                     src="https://images.ctfassets.net/rz1oowkt5gyp/dpVmczoTMbCYhIvYlxJkt/a24fc18991e38285391851ce79e88050/1_Project_Management_Trello_Board_2x.png"
+                     alt="Gestion de tâches">
+                <div class="p-5">
+                    <h3 class="font-bold text-[#58a6ff] mb-1">Gestion de tâches</h3>
+                    <p class="text-xs text-[#8b949e] mb-4">Application Flutter collaborative</p>
+                    <a href="details-project/details-projet1.html"
+                       class="text-xs bg-[#238636] hover:bg-[#2ea043] text-white px-3 py-1.5 rounded transition-colors">
+                        Voir détails →
+                    </a>
+                </div>
+            </div>
+
+            <div class="card-hover bg-[#161b22] rounded-xl overflow-hidden border border-[#30363d]">
+                <img class="w-full h-48 object-cover"
+                     src="https://culture-rh.com/wp-content/uploads/2024/10/logiciel-pointage-kelio-1024x576.png"
+                     alt="Gestion présence">
+                <div class="p-5">
+                    <h3 class="font-bold text-[#58a6ff] mb-1">Gestion de présence</h3>
+                    <p class="text-xs text-[#8b949e] mb-4">JavaFX + Spring Boot</p>
+                    <a href="details-project/details-projet2.html"
+                       class="text-xs bg-[#238636] hover:bg-[#2ea043] text-white px-3 py-1.5 rounded transition-colors">
+                        Voir détails →
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+</body>
+</html>
