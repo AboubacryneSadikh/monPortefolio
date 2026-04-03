@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../src/css/output.css">
+    <title>Détails — Gestion de présence</title>
+</head>
+<body class="bg-[#0d1117] text-[#e6edf3] min-h-screen">
+
+<!-- NAVBAR -->
+<nav class="bg-[#161b22] sticky top-0 z-50 border-b border-[#30363d]">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+        <a href="../../index.html" class="mono text-[#58a6ff] font-bold text-sm tracking-widest">ASD.</a>
+        <a href="../lister-projets.html" class="text-sm text-[#8b949e] hover:text-[#58a6ff] transition-colors">← Tous les projets</a>
+    </div>
+</nav>
+
+<section class="py-16 px-6">
+    <div class="max-w-3xl mx-auto">
+
+        <!-- En-tête -->
+        <div class="mb-8">
+            <p class="mono text-[#58a6ff] text-xs tracking-[0.3em] uppercase mb-3">Projet #02</p>
+            <h1 class="text-3xl font-bold mono text-[#e6edf3] leading-tight">
+                Application de gestion<br>de présence
+            </h1>
+        </div>
+
+        <!-- Image -->
+        <img class="w-full h-72 object-cover rounded-xl mb-10 border border-[#30363d]"
+             src="https://culture-rh.com/wp-content/uploads/2024/10/logiciel-pointage-kelio-1024x576.png"
+             alt="Gestion présence">
+
+        <!-- Contenu -->
+        <div class="bg-[#161b22] border border-[#30363d] rounded-2xl p-8 space-y-8">
+
+            <!-- Description -->
+            <div>
+                <h2 class="mono text-[#58a6ff] text-sm uppercase tracking-widest mb-3">Description</h2>
+                <p class="text-[#c9d1d9] text-sm leading-relaxed">
+                    Application desktop de gestion de présence développée avec JavaFX pour le client lourd et Spring Boot pour l'API REST.
+                </p>
+            </div>
+
+            <!-- Stack technique -->
+            <div>
+                <h2 class="mono text-[#58a6ff] text-sm uppercase tracking-widest mb-3">Stack technique</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="border-accent bg-[#0d1117] rounded-lg p-3">
+                        <p class="text-xs text-[#8b949e] mb-1">Backend</p>
+                        <p class="text-sm text-white">Spring Boot (API REST) + MySQL</p>
+                    </div>
+                    <div class="border-accent bg-[#0d1117] rounded-lg p-3">
+                        <p class="text-xs text-[#8b949e] mb-1">Frontend</p>
+                        <p class="text-sm text-white">Angular + Angular Material</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fonctionnalités -->
+            <div>
+                <h2 class="mono text-[#58a6ff] text-sm uppercase tracking-widest mb-3">Fonctionnalités</h2>
+                <ul class="space-y-2">
+                    <li class="flex items-center gap-3 text-sm text-[#c9d1d9]">
+                        <span class="w-1.5 h-1.5 rounded-full bg-[#58a6ff] flex-shrink-0"></span>
+                        Authentification sécurisée (JWT)
+                    </li>
+                    <li class="flex items-center gap-3 text-sm text-[#c9d1d9]">
+                        <span class="w-1.5 h-1.5 rounded-full bg-[#58a6ff] flex-shrink-0"></span>
+                        Système de pointage employés
+                    </li>
+                    <li class="flex items-center gap-3 text-sm text-[#c9d1d9]">
+                        <span class="w-1.5 h-1.5 rounded-full bg-[#58a6ff] flex-shrink-0"></span>
+                        Historique des présences et absences
+                    </li>
+                    <li class="flex items-center gap-3 text-sm text-[#c9d1d9]">
+                        <span class="w-1.5 h-1.5 rounded-full bg-[#58a6ff] flex-shrink-0"></span>
+                        Notifications automatiques
+                    </li>
+                    <li class="flex items-center gap-3 text-sm text-[#c9d1d9]">
+                        <span class="w-1.5 h-1.5 rounded-full bg-[#58a6ff] flex-shrink-0"></span>
+                        Dashboard administrateur
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Bilan -->
+            <div class="bg-[#0d1117] border-l-4 border-[#238636] rounded-lg p-4">
+                <p class="text-sm text-[#c9d1d9] leading-relaxed italic">
+                    Ce projet m'a permis d'améliorer mes compétences en développement desktop, architecture REST et gestion des états avec Angular.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="flex justify-center mt-8">
+            <a href="../lister-projets.html"
+               class="bg-[#58a6ff] hover:bg-[#1f6feb] text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition-colors">
+                ← Retour aux projets
+            </a>
+        </div>
+
+    </div>
+</section>
+
+</body>
+</html>
