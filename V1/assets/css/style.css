@@ -15,6 +15,7 @@ body {
 
 /* ================= NAVBAR ================= */
 .navbar {
+    width: 100%;
     background: #161b22;
     padding: 15px;
     position: sticky;
@@ -29,6 +30,7 @@ body {
 
 .navbar li {
     margin: 0 15px;
+   
 }
 
 .navbar a {
@@ -71,6 +73,7 @@ body {
 .competences ul {
     max-width: 600px;
     margin: auto;
+     list-style: none;
 }
 
 .competences li {
@@ -110,7 +113,8 @@ body {
 }
 
 .ajoutProject:hover {
-    background: #2ea043;
+    background: black;
+    border-width: 14px solid #238636;
 }
 
 /* GRID */

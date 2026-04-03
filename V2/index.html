@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="src/css/output.css">
+    <title>Mon portail</title>
+</head>
+
+<body>
+
+<header>
+    <nav class="navbar">
+        <ul>
+            <li><a href="#">Accueil</a></li>
+            <li><a href="#a-proposID">À propos</a></li>
+            <li><a href="#competenceId">Compétences</a></li>
+            <li><a href="#projetsId">Projets</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+</header>
+
+<main>
+
+    <!-- PROFIL -->
+    <section class="profil" id="a-proposID">
+        <h1>Aboubacryne Sadikh DIOP</h1>
+        <h2>Développeur Full-Stack Junior | Passionné du Cloud & DevOps</h2>
+        <p>
+            Je suis un développeur passionné par la création de solutions innovantes et efficaces.
+        </p>
+    </section>
+
+    <!-- COMPÉTENCES -->
+    <section id="competenceId" class="competences">
+        <h2>Compétences</h2>
+        <ul>
+            <li><strong>Langages :</strong> JavaScript, PHP, Java, C#, Windev & Webdev</li>
+            <li><strong>Frameworks :</strong> Angular, Spring Boot, Laravel</li>
+            <li><strong>Cloud :</strong> AWS (EC2, S3, Lambda)</li>
+            <li><strong>DevOps :</strong> Docker, Kubernetes, CI/CD</li>
+        </ul>
+    </section>
+
+    <!-- PROJETS -->
+    <section id="projetsId" class="projets">
+        <h2>Projets</h2>
+        <p class="subtitle">Mes projets académiques et personnels</p>
+
+        <a class="ajoutProject" href="pages/ajouter-projet.html">Ajouter un projet</a>
+
+        <ul>
+
+            <li>
+                <img class="imageInListProject"
+                     src="https://images.ctfassets.net/rz1oowkt5gyp/dpVmczoTMbCYhIvYlxJkt/a24fc18991e38285391851ce79e88050/1_Project_Management_Trello_Board_2x.png"
+                     alt="Application tâches">
+
+                <div class="titleProject">
+                    <p><strong>Application de gestion de tâches</strong></p>
+                </div>
+
+                <div class="descProject">
+                    <p>Application mobile Flutter pour la gestion collaborative.</p>
+                    <a href="pages/details-project/details-projet1.html">Détails</a>
+                </div>
+            </li>
+
+            <li>
+                <img class="imageInListProject"
+                     src="https://culture-rh.com/wp-content/uploads/2024/10/logiciel-pointage-kelio-1024x576.png"
+                     alt="Gestion présence">
+
+                <div class="titleProject">
+                    <p><strong>Application de gestion de présences</strong></p>
+                </div>
+
+                <div class="descProject">
+                    <p>Application JavaFX + Spring Boot.</p>
+                    <a href="pages/details-project/details-projet2.html">Détails</a>
+                </div>
+            </li>
+
+        </ul>
+        <a class="detailProjectButtom" href="pages/lister-projets.html">Voir les projets</a>
+    </section>
+
+</main>
+
+<!-- CONTACT -->
+<footer>
+
+    <form action="#" method="get" id="contact">
+        <fieldset>
+            <legend>Contactez-moi</legend>
+
+            <label for="nameInput">Nom</label>
+            <input type="text" id="nameInput" name="name" required>
+
+            <label for="emailUser">Email</label>
+            <input type="email" id="emailUser" name="email" required>
+
+            <label for="messageInput">Message</label>
+            <textarea id="messageInput" name="message" required></textarea>
+
+            <div class="check">
+                <input type="checkbox" id="conditions" required>
+                <label for="conditions">J'accepte les conditions</label>
+            </div>
+
+            <input type="submit" value="Envoyer">
+        </fieldset>
+    </form>
+
+    <div class="infos">
+        <p>Email : diopaboubacryne@gmail.com</p>
+        <p>Tél : +221 78 525 06 65</p>
+        <p>Dakar, Sénégal</p>
+    </div>
+
+</footer>
+
+</body>
+</html>
