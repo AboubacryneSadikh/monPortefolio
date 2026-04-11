@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="src/css/output.css">
+  <title>ASD. Portfolio</title>
+</head>
+<body class="bg-[#0d1117] text-[#e6edf3] min-h-screen">
+
+<!-- NAVBAR -->
+<nav class="bg-[#161b22] border-b border-[#30363d] sticky top-0 z-50">
+  <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+    <a href="#" class="font-mono-custom text-[#58a6ff] font-bold text-sm tracking-widest no-underline">ASD.</a>
+    <ul class="hidden md:flex gap-8 list-none">
+      <li><a href="#hero" class="text-sm text-[#8b949e] hover:text-[#58a6ff] transition-colors no-underline">Accueil</a></li>
+      <li><a href="#projets-section" class="text-sm text-[#8b949e] hover:text-[#58a6ff] transition-colors no-underline">Projets</a></li>
+      <li><a href="#contact-section" class="text-sm text-[#8b949e] hover:text-[#58a6ff] transition-colors no-underline">Contact</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div id="hero" class="max-w-3xl mx-auto px-6 py-24 text-center">
+  <p class="font-mono-custom text-[#58a6ff] text-xs tracking-[0.3em] uppercase mb-4">Développeur Full-Stack</p>
+  <h1 class="text-5xl md:text-7xl font-extrabold text-[#58a6ff] leading-tight mb-4 hero-glow">Aboubacryne<br>Sadikh DIOP</h1>
+  <p class="text-[#8b949e] max-w-md mx-auto leading-relaxed text-sm mb-8">Passionné par la création de solutions innovantes. Du front au back, avec une appétence pour le cloud.</p>
+  <div class="flex gap-2 justify-center flex-wrap">
+    <span class="border border-[#30363d] text-[#58a6ff] font-mono-custom text-xs px-3 py-1 rounded-full">Laravel</span>
+    <span class="border border-[#30363d] text-[#58a6ff] font-mono-custom text-xs px-3 py-1 rounded-full">Angular</span>
+    <span class="border border-[#30363d] text-[#58a6ff] font-mono-custom text-xs px-3 py-1 rounded-full">Flutter</span>
+    <span class="border border-[#30363d] text-[#58a6ff] font-mono-custom text-xs px-3 py-1 rounded-full">AWS</span>
+    <span class="border border-[#30363d] text-[#58a6ff] font-mono-custom text-xs px-3 py-1 rounded-full">Docker</span>
+  </div>
+</div>
+
+<!-- PROJETS -->
+<section id="projets-section" class="max-w-6xl mx-auto px-6 py-16">
+  <p class="font-mono-custom text-[#58a6ff] text-xs tracking-[0.3em] uppercase text-center mb-1">Portfolio</p>
+  <h2 class="text-3xl font-bold text-center mb-1">Mes Projets</h2>
+  <p class="text-[#8b949e] text-sm text-center mb-8">Gère, explore et détaille tes réalisations</p>
+
+  <!-- STATS -->
+  <div class="flex gap-4 justify-center flex-wrap mb-8">
+    <div class="bg-[#161b22] border border-[#30363d] rounded-xl px-6 py-3 text-center min-w-[110px]">
+      <div id="stat-total" class="text-2xl font-extrabold text-[#58a6ff] font-mono-custom">0</div>
+      <div class="text-xs text-[#8b949e] uppercase tracking-wide mt-1">Total</div>
+    </div>
+    <div class="bg-[#161b22] border border-[#30363d] rounded-xl px-6 py-3 text-center min-w-[110px]">
+      <div id="stat-cours" class="text-2xl font-extrabold text-[#58a6ff] font-mono-custom">0</div>
+      <div class="text-xs text-[#8b949e] uppercase tracking-wide mt-1">En cours</div>
+    </div>
+    <div class="bg-[#161b22] border border-[#30363d] rounded-xl px-6 py-3 text-center min-w-[110px]">
+      <div id="stat-termine" class="text-2xl font-extrabold text-[#58a6ff] font-mono-custom">0</div>
+      <div class="text-xs text-[#8b949e] uppercase tracking-wide mt-1">Terminés</div>
+    </div>
+    <div class="bg-[#161b22] border border-[#30363d] rounded-xl px-6 py-3 text-center min-w-[110px]">
+      <div id="stat-taille" class="text-2xl font-extrabold text-[#58a6ff] font-mono-custom">0 Ko</div>
+      <div class="text-xs text-[#8b949e] uppercase tracking-wide mt-1">Images</div>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="flex justify-between items-center flex-wrap gap-4 mb-6">
+    <div class="flex gap-2 flex-wrap">
+      <button class="filter-btn font-mono-custom text-xs px-4 py-1.5 rounded-full border border-[#30363d] bg-transparent text-[#8b949e] cursor-pointer transition-all active" data-filter="tous">Tous</button>
+      <button class="filter-btn font-mono-custom text-xs px-4 py-1.5 rounded-full border border-[#30363d] bg-transparent text-[#8b949e] cursor-pointer transition-all" data-filter="en_cours">En cours</button>
+      <button class="filter-btn font-mono-custom text-xs px-4 py-1.5 rounded-full border border-[#30363d] bg-transparent text-[#8b949e] cursor-pointer transition-all" data-filter="termine">Terminés</button>
+      <button class="filter-btn font-mono-custom text-xs px-4 py-1.5 rounded-full border border-[#30363d] bg-transparent text-[#8b949e] cursor-pointer transition-all" data-filter="archive">Archivés</button>
+    </div>
+    <button id="btn-ouvrir-ajout" class="bg-[#238636] hover:bg-[#2ea043] text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors cursor-pointer border-0">+ Ajouter un projet</button>
+  </div>
+
+  <!-- GRILLE -->
+  <div id="projets-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+</section>
+
+<!-- CONTACT / FOOTER -->
+<footer id="contact-section" class="bg-[#161b22] border-t border-[#30363d] py-16 px-6">
+  <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
+    <div>
+      <p class="font-mono-custom text-[#58a6ff] text-xs tracking-[0.3em] uppercase mb-1">Contact</p>
+      <h2 class="text-2xl font-bold mb-1">Travaillons ensemble</h2>
+      <p class="text-[#8b949e] text-sm mb-6">Des idées ? Ravis de l'entendre.</p>
+      <form id="contactForm" class="flex flex-col gap-4">
+        <div>
+          <label class="block font-mono-custom text-xs text-[#8b949e] uppercase tracking-widest mb-1">Nom *</label>
+          <input type="text" name="nom" required placeholder="Votre nom" class="w-full bg-[#0d1117] border border-[#30363d] text-[#e6edf3] rounded-lg px-4 py-3 text-sm outline-none focus:border-[#58a6ff] transition-colors">
+        </div>
+        <div>
+          <label class="block font-mono-custom text-xs text-[#8b949e] uppercase tracking-widest mb-1">Email *</label>
+          <input type="email" name="email" required placeholder="votre@email.com" class="w-full bg-[#0d1117] border border-[#30363d] text-[#e6edf3] rounded-lg px-4 py-3 text-sm outline-none focus:border-[#58a6ff] transition-colors">
+        </div>
+        <div>
+          <label class="block font-mono-custom text-xs text-[#8b949e] uppercase tracking-widest mb-1">Message *</label>
+          <textarea name="message" rows="4" required placeholder="Votre message..." class="w-full bg-[#0d1117] border border-[#30363d] text-[#e6edf3] rounded-lg px-4 py-3 text-sm outline-none focus:border-[#58a6ff] transition-colors resize-none"></textarea>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="checkbox" id="conditions" required class="w-4 h-4 accent-[#58a6ff]">
+          <label for="conditions" class="text-sm text-[#c9d1d9]">J'accepte les conditions d'utilisation</label>
+        </div>
+        <button type="submit" class="w-full bg-[#58a6ff] hover:bg-[#1f6feb] text-[#0d1117] font-bold py-3 rounded-lg transition-colors text-sm cursor-pointer border-0">Envoyer le message</button>
+        <p id="contact-msg" class="text-[#3fb950] text-sm text-center min-h-[1.2em]"></p>
+      </form>
+    </div>
+    <div class="flex flex-col justify-center gap-4">
+      <h3 class="font-mono-custom font-bold text-[#58a6ff] text-lg">Coordonnées</h3>
+      <div class="flex items-center gap-3 bg-[#0d1117] border border-[#30363d] rounded-lg p-4 text-sm text-[#8b949e]"><span class="text-[#58a6ff]">✉</span><span>diopaboubacryne@gmail.com</span></div>
+      <div class="flex items-center gap-3 bg-[#0d1117] border border-[#30363d] rounded-lg p-4 text-sm text-[#8b949e]"><span class="text-[#58a6ff]">📞</span><span>+221 78 525 06 65</span></div>
+      <div class="flex items-center gap-3 bg-[#0d1117] border border-[#30363d] rounded-lg p-4 text-sm text-[#8b949e]"><span class="text-[#58a6ff]">📍</span><span>Dakar, Sénégal</span></div>
+    </div>
+  </div>
+  <p class="text-center text-[#30363d] font-mono-custom text-xs mt-12">© 2026 Aboubacryne Sadikh DIOP</p>
+</footer>
+
+<!-- MODAL AJOUT -->
+<div class="modal-overlay hidden fixed inset-0 bg-black/75 z-[200] items-center justify-center backdrop-blur-sm p-4" id="modal-ajout">
+  <div class="bg-[#161b22] border border-[#30363d] rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-8 relative animate-slide-up">
+    <button class="modal-close absolute top-4 right-4 bg-transparent border-0 text-[#8b949e] hover:text-[#e6edf3] text-xl cursor-pointer leading-none">✕</button>
+    <p class="font-mono-custom text-[#58a6ff] text-xs tracking-[0.2em] uppercase mb-1">Nouveau</p>
+    <h2 class="text-xl font-bold text-[#58a6ff] mb-6">Ajouter un projet</h2>
+    <form id="form-projet" class="flex flex-col gap-4">
+      <div>
+        <label class="block font-mono-custom text-xs text-[#8b949e] uppercase tracking-widest mb-1">Titre *</label>
+        <input type="text" id="f-titre" required placeholder="Ex : App de gestion de stock" class="w-full bg-[#0d1117] border border-[#30363d] text-[#e6edf3] rounded-lg px-4 py-3 text-sm outline-none focus:border-[#58a6ff] transition-colors">
+      </div>
+      <div>
+        <label class="block font-mono-custom text-xs text-[#8b949e] uppercase tracking-widest mb-1">Image du projet</label>
+        <div id="drop-zone" class="relative bg-[#0d1117] border-2 border-dashed border-[#30363d] hover:border-[#58a6ff] rounded-lg p-6 text-center cursor-pointer transition-colors">
+          <input type="file" id="f-image" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+          <div class="text-3xl mb-2 opacity-50">🖼️</div>
+          <p class="text-xs text-[#8b949e]"><span class="text-[#58a6ff]">Choisir un fichier</span> ou glisser-déposer</p>
+          <p class="text-[10px] text-[#8b949e] mt-1">PNG, JPG, WebP — max 5 Mo</p>
+          <img id="img-preview" class="hidden w-full max-h-36 object-cover rounded-lg mt-3" alt="aperçu">
+        </div>
+        <p id="img-info" class="font-mono-custom text-[10px] text-[#8b949e] mt-1"></p>
+      </div>
+      <div>
+        <label class="block font-mono-custom text-xs text-[#8b949e] uppercase tracking-widest mb-1">Description</label>
+        <textarea id="f-desc" rows="3" placeholder="Décris le projet..." class="w-full bg-[#0d1117] border border-[#30363d] text-[#e6edf3] rounded-lg px-4 py-3 text-sm outline-none focus:border-[#58a6ff] transition-colors resize-none"></textarea>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block font-mono-custom text-xs text-[#8b949e] uppercase tracking-widest mb-1">Technologies</label>
+          <input type="text" id="f-tech" placeholder="React, Laravel..." class="w-full bg-[#0d1117] border border-[#30363d] text-[#e6edf3] rounded-lg px-4 py-3 text-sm outline-none focus:border-[#58a6ff] transition-colors">
+        </div>
+        <div>
+          <label class="block font-mono-custom text-xs text-[#8b949e] uppercase tracking-widest mb-1">Statut</label>
+          <select id="f-statut" class="w-full bg-[#0d1117] border border-[#30363d] text-[#e6edf3] rounded-lg px-4 py-3 text-sm outline-none focus:border-[#58a6ff] transition-colors">
+            <option value="en_cours">En cours</option>
+            <option value="termine">Terminé</option>
+            <option value="archive">Archivé</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block font-mono-custom text-xs text-[#8b949e] uppercase tracking-widest mb-1">Lien GitHub</label>
+          <input type="url" id="f-github" placeholder="https://github.com/..." class="w-full bg-[#0d1117] border border-[#30363d] text-[#e6edf3] rounded-lg px-4 py-3 text-sm outline-none focus:border-[#58a6ff] transition-colors">
+        </div>
+        <div>
+          <label class="block font-mono-custom text-xs text-[#8b949e] uppercase tracking-widest mb-1">URL Démo</label>
+          <input type="url" id="f-demo" placeholder="https://..." class="w-full bg-[#0d1117] border border-[#30363d] text-[#e6edf3] rounded-lg px-4 py-3 text-sm outline-none focus:border-[#58a6ff] transition-colors">
+        </div>
+      </div>
+      <button type="submit" class="w-full bg-[#238636] hover:bg-[#2ea043] text-white font-bold py-3 rounded-lg transition-colors text-sm mt-1 cursor-pointer border-0">+ Ajouter le projet</button>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL DETAIL -->
+<div class="modal-overlay hidden fixed inset-0 bg-black/75 z-[200] items-center justify-center backdrop-blur-sm p-4" id="modal-detail">
+  <div class="bg-[#161b22] border border-[#30363d] rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-8 relative animate-slide-up">
+    <button class="modal-close absolute top-4 right-4 bg-transparent border-0 text-[#8b949e] hover:text-[#e6edf3] text-xl cursor-pointer leading-none">✕</button>
+    <div id="detail-contenu"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="fixed bottom-6 right-6 bg-[#161b22] border border-[#30363d] rounded-xl px-5 py-3 text-sm z-[999] max-w-xs" style="transform:translateY(100px);opacity:0;transition:all 0.3s ease;"></div>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
