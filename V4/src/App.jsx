@@ -12,7 +12,12 @@ export default function App() {
     <>
       <Navbar />
       <Routes>
-        
+        <Route path="/"                       element={<Home />} />
+        <Route path="/projets"                element={<Projects />} />
+        <Route path="/projets/ajouter"        element={<AddProject />} />
+        <Route path="/projets/:id/modifier"   element={<EditProject />} />
+        <Route path="/projets/:id"            element={<ProjectDetail />} />
+        <Route path="/merci"                  element={<FormSuccess />} />
       </Routes>
     </>
   )
