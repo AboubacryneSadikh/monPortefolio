@@ -1,0 +1,47 @@
+{
+  "projects": [
+    {
+      "id": "1",
+      "title": "Application de gestion de tâches",
+      "short": "Application mobile Flutter pour la gestion collaborative de projets en équipe.",
+      "description": "Application mobile de gestion de projet collaboratif développée avec Flutter pour le frontend et Laravel pour le backend. Elle permet à des équipes de gérer leurs tâches en temps réel, de suivre les progrès et de collaborer efficacement.",
+      "image": "https://images.ctfassets.net/rz1oowkt5gyp/dpVmczoTMbCYhIvYlxJkt/a24fc18991e38285391851ce79e88050/1_Project_Management_Trello_Board_2x.png",
+      "tags": [
+        "Flutter",
+        "Laravel",
+        "MySQL"
+      ],
+      "type": "Mobile",
+      "github": "",
+      "features": [
+        "Authentification sécurisée (JWT)",
+        "Gestion des projets et tâches en temps réel",
+        "Attribution des tâches par membre",
+        "Suivi des progrès et statistiques"
+      ]
+    },
+    {
+      "title": "Application de gestion de présences",
+      "short": "Application desktop JavaFX + Spring Boot avec système de pointage et dashboard admin.",
+      "description": "Application desktop de gestion de présences développée avec JavaFX et Spring Boot. Elle permet de gérer le pointage des employés ou étudiants, de consulter l'historique et de générer des rapports via un dashboard administrateur complet.",
+      "image": "https://culture-rh.com/wp-content/uploads/2024/10/logiciel-pointage-kelio-1024x576.png",
+      "tags": [
+        "JavaFX",
+        "Spring Boot",
+        "Angular",
+        "MySQL"
+      ],
+      "type": "Desktop",
+      "github": "",
+      "features": [
+        "Authentification sécurisée (JWT)",
+        "Système de pointage entrée / sortie",
+        "Historique détaillé des présences",
+        "Notifications en temps réel",
+        "Dashboard administrateur avec statistiques"
+      ],
+      "id": "2"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}
