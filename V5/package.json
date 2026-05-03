@@ -1,0 +1,18 @@
+{
+  "name": "g2-aws-p2026-backend",
+  "version": "1.0.0",
+  "description": "API REST Express.js + MongoDB Atlas — Portfolio G2 AWS P2026",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev":   "node --watch server.js",
+    "seed":  "node seed.js"
+  },
+  "dependencies": {
+    "cors":    "^2.8.5",
+    "dotenv":  "^16.4.5",
+    "express": "^4.18.3",
+    "mongoose": "^8.3.1"
+  }
+}
