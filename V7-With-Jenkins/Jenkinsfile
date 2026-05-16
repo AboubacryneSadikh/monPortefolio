@@ -27,12 +27,12 @@ pipeline {
             parallel {
                 stage('Build Backend') {
                     steps {
-                        sh "docker build -t ${BACKEND_IMAGE}:${IMAGE_TAG} -t ${BACKEND_IMAGE}:latest ./backend"
+                        sh "docker build -t ${BACKEND_IMAGE}:${IMAGE_TAG} -t ${BACKEND_IMAGE}:latest ${WORKSPACE}/backend"
                     }
                 }
                 stage('Build Frontend') {
                     steps {
-                        sh "docker build -t ${FRONTEND_IMAGE}:${IMAGE_TAG} -t ${FRONTEND_IMAGE}:latest ./frontend"
+                        sh "docker build -t ${FRONTEND_IMAGE}:${IMAGE_TAG} -t ${FRONTEND_IMAGE}:latest ${WORKSPACE}/frontend"
                     }
                 }
             }
@@ -101,6 +101,7 @@ pipeline {
                     fi
                 '''
                 sh """
+                    cd ${WORKSPACE}
                     BACKEND_IMAGE=${BACKEND_IMAGE}:${IMAGE_TAG} \
                     FRONTEND_IMAGE=${FRONTEND_IMAGE}:${IMAGE_TAG} \
                     docker compose down --remove-orphans || true
@@ -127,9 +128,6 @@ pipeline {
         success { echo "✅ Pipeline réussi — Build #${BUILD_NUMBER}" }
         failure {
             echo "❌ Pipeline échoué — Build #${BUILD_NUMBER}"
-            mail to: 'ton-email@gmail.com',
-                 subject: "❌ Jenkins Build #${BUILD_NUMBER} échoué",
-                 body: "Le pipeline a échoué.\n\nVoir les logs : ${BUILD_URL}"
         }
     }
 }
