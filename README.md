@@ -11,7 +11,7 @@ Développeur Full-Stack Junior | Passionné du Cloud & DevOps
 📍 Dakar, Sénégal  
 📧 diopaboubacryne@gmail.com  
 📞 +221 78 525 06 65  
-
+📞 +221 78 013 12 10  
 ---
 
 ## 📁 Structure du projet
