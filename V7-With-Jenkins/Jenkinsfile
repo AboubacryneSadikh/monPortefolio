@@ -126,9 +126,18 @@ pipeline {
                 docker image prune -f
             """
         }
-        success { echo "✅ Pipeline réussi — Build #${BUILD_NUMBER}" }
+        success { 
+            echo "✅ Pipeline réussi — Build #${BUILD_NUMBER}"
+             mail to: 'etablissementdinformatiqueacad@gmail.com',
+                 subject: "✅ Jenkins Build #${BUILD_NUMBER} réussi",
+                 body: "Le pipeline s'est terminé avec succès.\n\nVoir les logs : ${BUILD_URL}"
+   
+        }
         failure {
             echo "❌ Pipeline échoué — Build #${BUILD_NUMBER}"
+             mail to: 'etablissementdinformatiqueacad@gmail.com',
+                 subject: "❌ Jenkins Build #${BUILD_NUMBER} échoué",
+                 body: "Le pipeline a échoué.\n\nVoir les logs : ${BUILD_URL}"
         }
     }
 }
