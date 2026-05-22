@@ -1,5 +1,34 @@
 services:
 
+  jenkins:
+    image: jenkins/jenkins:lts-jdk21
+    container_name: jenkins
+    restart: unless-stopped
+    user: root
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - ci-network
+
+  sonarqube:
+    image: sonarqube:community
+    container_name: sonarqube
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_extensions:/opt/sonarqube/extensions
+    networks:
+      - ci-network
+
   mongodb:
     image: mongo:7.0
     container_name: db-mongo
@@ -14,6 +43,8 @@ services:
       timeout: 10s
       retries: 10
       start_period: 30s
+    networks:
+      - app-network
 
   backend:
     build: ./backend
@@ -30,6 +61,8 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
+    networks:
+      - app-network
 
   frontend:
     build: ./frontend
@@ -40,23 +73,18 @@ services:
       - "5173:80"
     depends_on:
       - backend
-  
-  sonarqube:
-    image: sonarqube:community
-    container_name: sonarqube
-    ports:
-      - "9000:9000"
-    environment:
-      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
-    volumes:
-      - sonarqube_data:/opt/sonarqube/data
-      - sonarqube_logs:/opt/sonarqube/logs
-      - sonarqube_extensions:/opt/sonarqube/extensions
+    networks:
+      - app-network
 
 volumes:
+  jenkins_home:
   mongo_data:
   sonarqube_data:
   sonarqube_logs:
   sonarqube_extensions:
 
-
+networks:
+  ci-network:
+    driver: bridge
+  app-network:
+    driver: bridge
