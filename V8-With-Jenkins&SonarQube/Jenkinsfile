@@ -11,7 +11,7 @@ pipeline {
 
     options {
         buildDiscarder(logRotator(numToKeepStr: '5'))
-        timeout(time: 30, unit: 'MINUTES')
+        timeout(time: 60, unit: 'MINUTES')
         disableConcurrentBuilds()
     }
 
@@ -25,7 +25,7 @@ pipeline {
 
         stage('Analyse SonarQube') {
             options {
-                timeout(time: 10, unit: 'MINUTES')
+                timeout(time: 20, unit: 'MINUTES')
             }
             steps {
                 withSonarQubeEnv('sonarqube') {
@@ -37,7 +37,7 @@ pipeline {
                                 -Dsonar.projectKey=portfolio \
                                 '-Dsonar.projectName=Portfolio CI/CD' \
                                 -Dsonar.sources=. \
-                                '-Dsonar.exclusions=**/node_modules/**,**/coverage/**'
+                                '-Dsonar.exclusions=**/node_modules/**,**/coverage/**,**/dist/**,**/.git/**,**/build/**'
                         """
                     }
                 }
