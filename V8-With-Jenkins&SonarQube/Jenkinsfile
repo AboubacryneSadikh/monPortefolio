@@ -36,8 +36,9 @@ pipeline {
                             '${scannerHome}/bin/sonar-scanner' \
                                 -Dsonar.projectKey=portfolio \
                                 '-Dsonar.projectName=Portfolio CI/CD' \
-                                -Dsonar.sources=. \
-                                '-Dsonar.exclusions=**/node_modules/**,**/coverage/**,**/dist/**,**/.git/**,**/build/**'
+                                '-Dsonar.sources=frontend/src,backend' \
+                                '-Dsonar.exclusions=**/node_modules/**,**/coverage/**,**/dist/**,**/.git/**,**/build/**' \
+                                -Dsonar.javascript.node.maxspace=512
                         """
                     }
                 }
