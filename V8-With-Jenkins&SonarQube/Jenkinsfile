@@ -122,21 +122,14 @@ pipeline {
                 }
             }
             steps {
-                sh '''
-                    if ! docker compose version > /dev/null 2>&1; then
-                        mkdir -p "${HOME}/.docker/cli-plugins"
-                        curl -SL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64" \
-                            -o "${HOME}/.docker/cli-plugins/docker-compose"
-                        chmod +x "${HOME}/.docker/cli-plugins/docker-compose"
-                    fi
-                '''
                 sh """
-                    cd "${WORKSPACE}/V8-With-Jenkins&SonarQube"
+                    cd '${WORKSPACE}/V8-With-Jenkins&SonarQube'
+
                     BACKEND_IMAGE=${BACKEND_IMAGE}:${IMAGE_TAG} \
                     FRONTEND_IMAGE=${FRONTEND_IMAGE}:${IMAGE_TAG} \
                     docker compose down --remove-orphans || true
 
-                    docker rm -f db-mongo portfolio-backend portfolio-frontend sonarqube 2>/dev/null || true
+                    docker rm -f db-mongo portfolio-backend portfolio-frontend 2>/dev/null || true
 
                     BACKEND_IMAGE=${BACKEND_IMAGE}:${IMAGE_TAG} \
                     FRONTEND_IMAGE=${FRONTEND_IMAGE}:${IMAGE_TAG} \
