@@ -17,12 +17,6 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
         stage('Analyse SonarQube') {
             options {
                 timeout(time: 20, unit: 'MINUTES')
