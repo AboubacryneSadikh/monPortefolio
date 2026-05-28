@@ -121,13 +121,13 @@ pipeline {
 
                     BACKEND_IMAGE=${BACKEND_IMAGE}:${IMAGE_TAG} \
                     FRONTEND_IMAGE=${FRONTEND_IMAGE}:${IMAGE_TAG} \
-                    docker compose -f "\$COMPOSE_FILE" down --remove-orphans || true
+                    docker compose -f "\$COMPOSE_FILE" --profile app down --remove-orphans || true
 
                     docker rm -f db-mongo portfolio-backend portfolio-frontend 2>/dev/null || true
 
                     BACKEND_IMAGE=${BACKEND_IMAGE}:${IMAGE_TAG} \
                     FRONTEND_IMAGE=${FRONTEND_IMAGE}:${IMAGE_TAG} \
-                    docker compose -f "\$COMPOSE_FILE" up -d --pull always --remove-orphans
+                    docker compose -f "\$COMPOSE_FILE" --profile app up -d --pull always --remove-orphans
                 """
             }
         }
