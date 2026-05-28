@@ -123,15 +123,17 @@ pipeline {
             }
             steps {
                 sh """
+                    COMPOSE_FILE="${WORKSPACE}/V8-With-Jenkins&SonarQube/docker-compose.yml"
+
                     BACKEND_IMAGE=${BACKEND_IMAGE}:${IMAGE_TAG} \
                     FRONTEND_IMAGE=${FRONTEND_IMAGE}:${IMAGE_TAG} \
-                    docker compose -f '${WORKSPACE}/V8-With-Jenkins&SonarQube/docker-compose.yml' down --remove-orphans || true
+                    docker compose -f "\$COMPOSE_FILE" down --remove-orphans || true
 
                     docker rm -f db-mongo portfolio-backend portfolio-frontend 2>/dev/null || true
 
                     BACKEND_IMAGE=${BACKEND_IMAGE}:${IMAGE_TAG} \
                     FRONTEND_IMAGE=${FRONTEND_IMAGE}:${IMAGE_TAG} \
-                    docker compose -f '${WORKSPACE}/V8-With-Jenkins&SonarQube/docker-compose.yml' up -d --pull always --remove-orphans
+                    docker compose -f "\$COMPOSE_FILE" up -d --pull always --remove-orphans
                 """
             }
         }
