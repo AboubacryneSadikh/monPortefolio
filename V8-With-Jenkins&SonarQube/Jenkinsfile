@@ -1,4 +1,4 @@
-pipeline {
+﻿pipeline {
     agent any
 
     environment {
@@ -73,7 +73,7 @@ pipeline {
                         ${BACKEND_IMAGE}:${IMAGE_TAG}
                     sleep 10
                     docker inspect test-backend --format='{{.State.Status}}' | grep -q running
-                    echo '✅ Backend container OK'
+                    echo 'âœ… Backend container OK'
                 """
             }
             post {
@@ -112,7 +112,7 @@ pipeline {
             }
         }
 
-        stage('Déploiement') {
+        stage('DÃ©ploiement') {
             when {
                 expression {
                     return env.GIT_BRANCH == 'origin/main' ||
@@ -149,16 +149,16 @@ pipeline {
             """
         }
         success {
-            echo "✅ Pipeline réussi — Build #${BUILD_NUMBER}"
+            echo "âœ… Pipeline rÃ©ussi â€” Build #${BUILD_NUMBER}"
             mail to: 'etablissementdinformatiqueacad@gmail.com',
-                 subject: "✅ Jenkins Build #${BUILD_NUMBER} réussi",
-                 body: "Le pipeline s'est terminé avec succès.\n\nVoir les logs : ${BUILD_URL}"
+                 subject: "âœ… Jenkins Build #${BUILD_NUMBER} rÃ©ussi",
+                 body: "Le pipeline s'est terminÃ© avec succÃ¨s.\n\nVoir les logs : ${BUILD_URL}"
         }
         failure {
-            echo "❌ Pipeline échoué — Build #${BUILD_NUMBER}"
+            echo "âŒ Pipeline Ã©chouÃ© â€” Build #${BUILD_NUMBER}"
             mail to: 'etablissementdinformatiqueacad@gmail.com',
-                 subject: "❌ Jenkins Build #${BUILD_NUMBER} échoué",
-                 body: "Le pipeline a échoué.\n\nVoir les logs : ${BUILD_URL}"
+                 subject: "âŒ Jenkins Build #${BUILD_NUMBER} Ã©chouÃ©",
+                 body: "Le pipeline a Ã©chouÃ©.\n\nVoir les logs : ${BUILD_URL}"
         }
     }
 }
