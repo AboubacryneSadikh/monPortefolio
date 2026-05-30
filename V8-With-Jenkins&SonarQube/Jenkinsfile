@@ -93,13 +93,15 @@ pipeline {
                 }
             }
             steps {
-                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
-                sh """
-                    docker push ${BACKEND_IMAGE}:${IMAGE_TAG}
-                    docker push ${BACKEND_IMAGE}:latest
-                    docker push ${FRONTEND_IMAGE}:${IMAGE_TAG}
-                    docker push ${FRONTEND_IMAGE}:latest
-                """
+                retry(3) {
+                    sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                    sh """
+                        docker push ${BACKEND_IMAGE}:${IMAGE_TAG}
+                        docker push ${BACKEND_IMAGE}:latest
+                        docker push ${FRONTEND_IMAGE}:${IMAGE_TAG}
+                        docker push ${FRONTEND_IMAGE}:latest
+                    """
+                }
             }
             post {
                 always { sh 'docker logout' }
