@@ -1,4 +1,4 @@
-pipeline {
+﻿pipeline {
     agent any
 
     environment {
@@ -112,7 +112,7 @@ pipeline {
             }
         }
 
-        stage('DÃ©ploiement') {
+        stage('Déploiement') {
             when {
                 expression {
                     return env.GIT_BRANCH == 'origin/main' ||
@@ -149,16 +149,16 @@ pipeline {
             """
         }
         success {
-            echo "âœ… Pipeline rÃ©ussi â€” Build #${BUILD_NUMBER}"
+            echo "Pipeline réussi Build #${BUILD_NUMBER}"
             mail to: 'etablissementdinformatiqueacad@gmail.com',
-                 subject: "âœ… Jenkins Build #${BUILD_NUMBER} rÃ©ussi",
-                 body: "Le pipeline s'est terminÃ© avec succÃ¨s.\n\nVoir les logs : ${BUILD_URL}"
+                 subject: "Jenkins Build #${BUILD_NUMBER} réussi",
+                 body: "Le pipeline s'est terminé avec succès.\n\nVoir les logs : ${BUILD_URL}"
         }
         failure {
-            echo "âŒ Pipeline Ã©chouÃ© â€” Build #${BUILD_NUMBER}"
+            echo "Pipeline échoué Build #${BUILD_NUMBER}"
             mail to: 'etablissementdinformatiqueacad@gmail.com',
-                 subject: "âŒ Jenkins Build #${BUILD_NUMBER} Ã©chouÃ©",
-                 body: "Le pipeline a Ã©chouÃ©.\n\nVoir les logs : ${BUILD_URL}"
+                 subject: "Jenkins Build #${BUILD_NUMBER} échoué",
+                 body: "Le pipeline a échoué.\n\nVoir les logs : ${BUILD_URL}"
         }
     }
 }
