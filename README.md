@@ -331,4 +331,145 @@ import profileImg from '../assets/img/profile.jpg'
 
 ---
 
+## 🚀 V5 — Backend Node.js + MongoDB
+
+API REST Express connectée à MongoDB Atlas.
+
+- **Express.js** pour les routes CRUD
+- **MongoDB** avec Mongoose
+- Variables d'environnement via `.env`
+- Seed de données avec `seed.js`
+
+---
+
+## 🐳 V6 — Docker (Frontend + Backend + MongoDB)
+
+Conteneurisation complète de l'application avec Docker Compose.
+
+| Service    | Image              | Port  |
+|------------|--------------------|-------|
+| `mongodb`  | `mongo:7.0`        | 27017 |
+| `backend`  | image locale       | 5000  |
+| `frontend` | image locale       | 5173  |
+
+```bash
+# Lancer toute la stack
+docker compose up -d
+```
+
+---
+
+## 🔧 V7 — CI/CD avec Jenkins
+
+Pipeline Jenkins automatisé déclenché à chaque push sur `main`.
+
+### Architecture du pipeline
+
+```
+Push GitHub
+    │
+    ▼
+[Checkout]       → Clone le dépôt
+[Build Docker]   → Construit backend + frontend en parallèle
+[Test]           → Vérifie que le conteneur backend démarre
+[Push Docker Hub]→ Publie les images (branche main uniquement)
+[Deploiement]    → Redémarre les conteneurs via Docker Compose
+[Notifications]  → Email en cas de succes ou d'echec
+```
+
+### Prérequis Jenkins
+
+- Plugin **Pipeline**
+- Plugin **Git**
+- Plugin **Credentials Binding**
+- Credentials `dockerhub-credentials` (Username + Password/Token)
+- Serveur SMTP configure dans `Manage Jenkins > System > E-mail Notification`
+
+### Lancer Jenkins
+
+```bash
+docker run -d \
+  --name jenkins \
+  --restart unless-stopped \
+  -u root \
+  -p 8080:8080 \
+  -p 50000:50000 \
+  -v jenkins_home:/var/jenkins_home \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  jenkins/jenkins:lts-jdk21
+```
+
+### Configuration du job
+
+1. `New Item` → `Pipeline`
+2. `Build Triggers` → cocher `GitHub hook trigger for GITScm polling`
+3. `Pipeline` → `Pipeline script from SCM`
+4. `Script Path` → `V7-With-Jenkins/Jenkinsfile`
+
+---
+
+## 🔍 V8 — CI/CD Jenkins + Analyse SonarQube
+
+Extension de la V7 avec analyse de qualite de code via SonarQube.
+
+### Pipeline complet
+
+```
+Push GitHub
+    │
+    ▼
+[Analyse SonarQube] → Analyse statique du code source
+[Quality Gate]      → Bloque le pipeline si la qualite est insuffisante
+[Build Docker]      → Construit backend + frontend en parallèle
+[Test]              → Vérifie que le conteneur backend démarre
+[Push Docker Hub]   → Publie les images (branche main uniquement)
+[Deploiement]       → Redémarre les conteneurs via Docker Compose
+[Notifications]     → Email en cas de succes ou d'echec
+```
+
+### Lancer l'infrastructure (Jenkins + SonarQube)
+
+```bash
+# Depuis la racine du projet
+docker compose -f "V8-With-Jenkins&SonarQube/docker-compose.yml" --profile infra up -d
+```
+
+| Service     | URL                    | Description              |
+|-------------|------------------------|--------------------------|
+| Jenkins     | http://localhost:8080  | Serveur CI/CD            |
+| SonarQube   | http://localhost:9000  | Analyse qualite de code  |
+
+### Configuration Jenkins pour SonarQube
+
+1. Installer le plugin **SonarQube Scanner**
+2. `Manage Jenkins` → `System` → `SonarQube servers` :
+   - Name : `sonarqube`
+   - URL : `http://sonarqube:9000`
+   - Token : credential `sonarqube-token`
+3. `Manage Jenkins` → `Tools` → `SonarQube Scanner` :
+   - Name : `sonar-scanner`
+   - Install automatically : coché
+
+### Webhook SonarQube → Jenkins (Quality Gate)
+
+Dans SonarQube : `Administration` → `Configuration` → `Webhooks` → `Create`
+- Name : `Jenkins`
+- URL : `http://jenkins:8080/sonarqube-webhook/`
+
+### Configuration du job
+
+1. `New Item` → `Pipeline`
+2. `Build Triggers` → cocher `GitHub hook trigger for GITScm polling`
+3. `Pipeline` → `Pipeline script from SCM`
+4. `Script Path` → `V8-With-Jenkins&SonarQube/Jenkinsfile`
+
+### Credentials requis
+
+| ID                    | Type                  | Usage                    |
+|-----------------------|-----------------------|--------------------------|
+| `dockerhub-credentials` | Username + Password | Push vers Docker Hub     |
+| `sonarqube-token`     | Secret text           | Authentification SonarQube |
+
+---
+
 © 2026 Aboubacryne Sadikh DIOP
