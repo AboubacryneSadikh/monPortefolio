@@ -37,7 +37,8 @@ pipeline {
                                 -Dsonar.javascript.node.maxspace=512 \
                                 -Dsonar.scanner.skipJreProvisioning=true \
                                 -Dsonar.scm.disabled=true \
-                                -Dsonar.typescript.tsconfigPath=
+                                -Dsonar.typescript.tsconfigPath= \
+                                -Dsonar.nodejs.executable=\$(which node)
                         """
                     }
                 }
