@@ -23,6 +23,8 @@
       - "9000:9000"
     environment:
       - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+      - SONAR_CE_JAVAOPTS=-Xmx1g
+      - SONAR_WEB_JAVAOPTS=-Xmx512m
     volumes:
       - sonarqube_data:/opt/sonarqube/data
       - sonarqube_logs:/opt/sonarqube/logs
