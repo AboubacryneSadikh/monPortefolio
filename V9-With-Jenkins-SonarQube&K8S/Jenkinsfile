@@ -1,0 +1,167 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
+        DOCKERHUB_USERNAME    = "${DOCKERHUB_CREDENTIALS_USR}"
+        BACKEND_IMAGE         = "${DOCKERHUB_USERNAME}/portfolio-backend"
+        FRONTEND_IMAGE        = "${DOCKERHUB_USERNAME}/portfolio-frontend"
+        IMAGE_TAG             = "build-${BUILD_NUMBER}"
+        K8S_NAMESPACE         = "portfolio"
+    }
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '5'))
+        timeout(time: 60, unit: 'MINUTES')
+        disableConcurrentBuilds()
+    }
+
+    stages {
+
+        stage('Analyse SonarQube') {
+            options {
+                timeout(time: 30, unit: 'MINUTES')
+            }
+            steps {
+                withSonarQubeEnv('sonarqube') {
+                    script {
+                        def scannerHome = tool 'sonar-scanner'
+                        sh """
+                            cd '${WORKSPACE}/V9-With-Jenkins-SonarQube&K8S'
+                            '${scannerHome}/bin/sonar-scanner' \
+                                -Dsonar.projectKey=portfolio \
+                                '-Dsonar.projectName=Portfolio CI/CD K8S' \
+                                '-Dsonar.sources=frontend/src,backend' \
+                                '-Dsonar.exclusions=**/node_modules/**,**/coverage/**,**/dist/**,**/.git/**,**/build/**' \
+                                -Dsonar.javascript.node.maxspace=512
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        stage('Build Images Docker') {
+            parallel {
+                stage('Build Backend') {
+                    steps {
+                        sh "docker build -t ${BACKEND_IMAGE}:${IMAGE_TAG} -t ${BACKEND_IMAGE}:latest ${WORKSPACE}/V9-With-Jenkins-SonarQube\\&K8S/backend"
+                    }
+                }
+                stage('Build Frontend') {
+                    steps {
+                        sh "docker build -t ${FRONTEND_IMAGE}:${IMAGE_TAG} -t ${FRONTEND_IMAGE}:latest ${WORKSPACE}/V9-With-Jenkins-SonarQube\\&K8S/frontend"
+                    }
+                }
+            }
+        }
+
+        stage('Test conteneurs') {
+            steps {
+                sh """
+                    docker run -d --name test-backend \
+                        -e PORT=5000 \
+                        -e MONGODB_URI=mongodb://localhost:27017/test \
+                        -e NODE_ENV=test \
+                        -p 5001:5000 \
+                        ${BACKEND_IMAGE}:${IMAGE_TAG}
+                    sleep 10
+                    docker inspect test-backend --format='{{.State.Status}}' | grep -q running
+                    echo 'Backend container OK'
+                """
+            }
+            post {
+                always {
+                    sh 'docker stop test-backend 2>/dev/null || true; docker rm test-backend 2>/dev/null || true'
+                }
+            }
+        }
+
+        stage('Push Docker Hub') {
+            when {
+                expression {
+                    return env.GIT_BRANCH == 'origin/main' ||
+                           env.GIT_BRANCH == 'origin/master' ||
+                           env.BRANCH_NAME == 'main' ||
+                           env.BRANCH_NAME == 'master'
+                }
+            }
+            steps {
+                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                retry(3) {
+                    sh "docker push ${BACKEND_IMAGE}:${IMAGE_TAG}"
+                }
+                retry(3) {
+                    sh "docker push ${BACKEND_IMAGE}:latest"
+                }
+                retry(3) {
+                    sh "docker push ${FRONTEND_IMAGE}:${IMAGE_TAG}"
+                }
+                retry(3) {
+                    sh "docker push ${FRONTEND_IMAGE}:latest"
+                }
+            }
+            post {
+                always { sh 'docker logout' }
+            }
+        }
+
+        stage('Deploiement Kubernetes') {
+            when {
+                expression {
+                    return env.GIT_BRANCH == 'origin/main' ||
+                           env.GIT_BRANCH == 'origin/master' ||
+                           env.BRANCH_NAME == 'main' ||
+                           env.BRANCH_NAME == 'master'
+                }
+            }
+            steps {
+                sh """
+                    # Creer le namespace si inexistant
+                    kubectl get namespace ${K8S_NAMESPACE} || kubectl create namespace ${K8S_NAMESPACE}
+
+                    # Appliquer tous les manifestes Kubernetes
+                    kubectl apply -f '${WORKSPACE}/V9-With-Jenkins-SonarQube&K8S/k8s/' -n ${K8S_NAMESPACE}
+
+                    # Mettre a jour les images avec le tag du build
+                    kubectl set image deployment/backend backend=${BACKEND_IMAGE}:${IMAGE_TAG} -n ${K8S_NAMESPACE}
+                    kubectl set image deployment/frontend frontend=${FRONTEND_IMAGE}:${IMAGE_TAG} -n ${K8S_NAMESPACE}
+
+                    # Attendre que le rollout soit termine
+                    kubectl rollout status deployment/backend -n ${K8S_NAMESPACE} --timeout=120s
+                    kubectl rollout status deployment/frontend -n ${K8S_NAMESPACE} --timeout=120s
+                """
+            }
+        }
+
+    }
+
+    post {
+        always {
+            sh """
+                docker rmi ${BACKEND_IMAGE}:${IMAGE_TAG} 2>/dev/null || true
+                docker rmi ${FRONTEND_IMAGE}:${IMAGE_TAG} 2>/dev/null || true
+                docker image prune -f
+            """
+        }
+        success {
+            echo "Pipeline reussi - Build #${BUILD_NUMBER}"
+            mail to: 'etablissementdinformatiqueacad@gmail.com',
+                 subject: "[SUCCESS] Jenkins Build #${BUILD_NUMBER} - Portfolio K8S",
+                 body: "Le pipeline s'est termine avec succes.\n\nBuild : #${BUILD_NUMBER}\nBranche : ${GIT_BRANCH}\n\nVoir les logs : ${BUILD_URL}"
+        }
+        failure {
+            echo "Pipeline echoue - Build #${BUILD_NUMBER}"
+            mail to: 'etablissementdinformatiqueacad@gmail.com',
+                 subject: "[FAILURE] Jenkins Build #${BUILD_NUMBER} - Portfolio K8S",
+                 body: "Le pipeline a echoue.\n\nBuild : #${BUILD_NUMBER}\nBranche : ${GIT_BRANCH}\n\nVoir les logs : ${BUILD_URL}"
+        }
+    }
+}
