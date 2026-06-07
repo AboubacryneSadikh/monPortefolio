@@ -33,12 +33,9 @@ pipeline {
                                 -Dsonar.projectKey=portfolio \
                                 '-Dsonar.projectName=Portfolio CI/CD K8S' \
                                 '-Dsonar.sources=frontend/src,backend' \
-                                '-Dsonar.exclusions=**/node_modules/**,**/coverage/**,**/dist/**,**/.git/**,**/build/**,**/public/**' \
-                                -Dsonar.javascript.node.maxspace=512 \
+                                '-Dsonar.exclusions=**/node_modules/**,**/coverage/**,**/dist/**,**/.git/**,**/build/**,**/public/**,**/*.jsx,**/*.js,**/*.ts,**/*.tsx,**/*.css' \
                                 -Dsonar.scanner.skipJreProvisioning=true \
-                                -Dsonar.scm.disabled=true \
-                                -Dsonar.typescript.tsconfigPath= \
-                                -Dsonar.nodejs.executable=\$(which node)
+                                -Dsonar.scm.disabled=true
                         """
                     }
                 }
