@@ -13,6 +13,10 @@ spec:
       labels:
         app: backend
     spec:
+      initContainers:
+        - name: wait-for-mongodb
+          image: busybox:1.35
+          command: ['sh', '-c', 'until nc -z mongodb-service 27017; do echo waiting for mongodb; sleep 3; done']
       containers:
         - name: backend
           image: aboubacryne/portfolio-backend:latest
@@ -41,11 +45,13 @@ spec:
             httpGet:
               path: /api/projects
               port: 5000
-            initialDelaySeconds: 15
+            initialDelaySeconds: 45
             periodSeconds: 10
+            failureThreshold: 10
           livenessProbe:
             httpGet:
               path: /api/projects
               port: 5000
-            initialDelaySeconds: 30
+            initialDelaySeconds: 60
             periodSeconds: 20
+            failureThreshold: 5
