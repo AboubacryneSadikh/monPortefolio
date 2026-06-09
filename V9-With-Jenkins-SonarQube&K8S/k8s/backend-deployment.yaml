@@ -45,13 +45,13 @@ spec:
             httpGet:
               path: /api/projects
               port: 5000
-            initialDelaySeconds: 45
+            initialDelaySeconds: 20
             periodSeconds: 10
             failureThreshold: 10
           livenessProbe:
             httpGet:
               path: /api/projects
               port: 5000
-            initialDelaySeconds: 60
+            initialDelaySeconds: 40
             periodSeconds: 20
             failureThreshold: 5

@@ -142,8 +142,8 @@ pipeline {
                     kubectl set image deployment/frontend frontend=${FRONTEND_IMAGE}:${IMAGE_TAG} -n ${K8S_NAMESPACE}
 
                     # Attendre que le rollout soit termine
-                    kubectl rollout status deployment/backend -n ${K8S_NAMESPACE} --timeout=300s
-                    kubectl rollout status deployment/frontend -n ${K8S_NAMESPACE} --timeout=300s
+                    kubectl rollout status deployment/backend -n ${K8S_NAMESPACE} --timeout=600s
+                    kubectl rollout status deployment/frontend -n ${K8S_NAMESPACE} --timeout=600s
                 """
             }
         }
