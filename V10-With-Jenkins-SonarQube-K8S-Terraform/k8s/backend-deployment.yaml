@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: portfolio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      initContainers:
+        - name: wait-for-mongodb
+          image: busybox:1.35
+          command: ['sh', '-c', 'until nc -z mongodb-service 27017; do echo waiting for mongodb; sleep 3; done']
+      containers:
+        - name: backend
+          image: aboubacryne/portfolio-backend:latest
+          ports:
+            - containerPort: 5000
+          env:
+            - name: PORT
+              value: "5000"
+            - name: NODE_ENV
+              value: production
+            - name: FRONTEND_URL
+              value: http://frontend-service:80
+            - name: MONGO_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-secret
+                  key: mongo-username
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-secret
+                  key: mongo-password
+            - name: MONGODB_URI
+              value: mongodb://$(MONGO_USERNAME):$(MONGO_PASSWORD)@mongodb-service:27017/aboubacryne_portfolio?authSource=admin
+          readinessProbe:
+            httpGet:
+              path: /api/projects
+              port: 5000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: /api/projects
+              port: 5000
+            initialDelaySeconds: 40
+            periodSeconds: 20
+            failureThreshold: 5

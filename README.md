@@ -472,4 +472,173 @@ Dans SonarQube : `Administration` → `Configuration` → `Webhooks` → `Create
 
 ---
 
+## 🚀 V9 — CI/CD Jenkins + SonarQube + Kubernetes (Minikube)
+
+Extension de la V8 avec déploiement automatisé sur un cluster Kubernetes local (Minikube).
+
+### Architecture du pipeline
+
+```
+Push GitHub
+    │
+    ▼
+[Analyse SonarQube] → Analyse statique du code source
+[Quality Gate]      → Bloque si la qualité est insuffisante
+[Build Docker]      → Construit backend + frontend en parallèle
+[Test conteneurs]   → Vérifie que le conteneur backend démarre
+[Push Docker Hub]   → Publie les images taguées (branche main)
+[Déploiement K8S]   → kubectl apply + rollout sur Minikube
+[Notifications]     → Email succès / échec
+```
+
+### Stack déployée sur Kubernetes
+
+| Service    | Image                              | Type        |
+|------------|------------------------------------|-------------|
+| `mongodb`  | `mongo:7.0`                        | StatefulSet |
+| `backend`  | `aboubacryne/portfolio-backend`    | Deployment  |
+| `frontend` | `aboubacryne/portfolio-frontend`   | Deployment  |
+
+### Lancer l'infrastructure
+
+```bash
+# Démarrer Minikube (obligatoire avant le pipeline)
+minikube start
+
+# Démarrer Jenkins + SonarQube
+docker compose -f "V9-With-Jenkins-SonarQube&K8S/docker-compose.infra.yml" up -d
+```
+
+### Accéder au frontend déployé
+
+```bash
+minikube service frontend-service -n portfolio
+```
+
+### Configuration du job Jenkins
+
+1. `New Item` → `Pipeline`
+2. `Build Triggers` → `GitHub hook trigger for GITScm polling`
+3. `Pipeline` → `Pipeline script from SCM`
+4. `Script Path` → `V9-With-Jenkins-SonarQube&K8S/Jenkinsfile`
+
+### Credentials requis
+
+| ID                      | Type                | Usage                      |
+|-------------------------|---------------------|----------------------------|
+| `dockerhub-credentials` | Username + Password | Push vers Docker Hub       |
+| `sonarqube-token`       | Secret text         | Authentification SonarQube |
+| `kubeconfig`            | Secret file         | Accès au cluster K8S       |
+
+---
+
+## 🐛 Problèmes rencontrés et solutions — V9
+
+### 1. Rollout Kubernetes timeout (300s)
+
+**Symptôme :**
+```
+error: timed out waiting for the condition
+kubectl rollout status deployment/backend --timeout=300s
+```
+
+**Cause :** La `readinessProbe` du backend avait un `initialDelaySeconds: 45` — le pod mettait plus de 5 minutes à être considéré `Ready` pendant un rolling update, le temps que MongoDB soit disponible et que la probe réponde.
+
+**Solution :**
+- Réduction de `initialDelaySeconds` de 45s → 20s dans `backend-deployment.yaml`
+- Augmentation du timeout du rollout de 300s → 600s dans le Jenkinsfile
+
+---
+
+### 2. Authentification MongoDB échouée (`Authentication failed`)
+
+**Symptôme :**
+```
+MongoServerError: Authentication failed
+code: 18, codeName: 'AuthenticationFailed'
+```
+
+**Cause :** MongoDB ignore les variables `MONGO_INITDB_ROOT_USERNAME` et `MONGO_INITDB_ROOT_PASSWORD` lorsque le répertoire `/data/db` contient déjà des données (même partielles). Le PersistentVolume réutilisait d'anciennes données d'une initialisation précédente avec des credentials différents.
+
+**Solution :**
+1. Suppression du StatefulSet, du PVC et des PV associés pour forcer une réinitialisation propre :
+```bash
+kubectl delete statefulset mongodb -n portfolio
+kubectl delete pvc mongo-data-mongodb-0 -n portfolio
+kubectl delete pv <nom-du-pv>
+```
+2. Recréation du StatefulSet. Comme MongoDB ignorait toujours les variables d'init (volume non vide au niveau des fichiers système), création manuelle de l'utilisateur directement dans le pod :
+```bash
+kubectl exec -it mongodb-0 -n portfolio -- mongosh --eval \
+  "db.getSiblingDB('admin').createUser({user:'mongo', pwd:'passer', roles:[{role:'root',db:'admin'}]})"
+```
+
+---
+
+### 3. Timeout de la readinessProbe MongoDB (1 seconde)
+
+**Symptôme :**
+```
+Readiness probe failed: command timed out: "mongosh --eval db.adminCommand('ping')" timed out after 1s
+```
+
+**Cause :** La `readinessProbe` du StatefulSet MongoDB utilisait le timeout par défaut de 1 seconde. Mongosh prend plus de 1s à démarrer dans le container, ce qui faisait échouer la probe en permanence et empêchait le pod de passer `Ready`.
+
+**Solution :** Ajout de `timeoutSeconds: 5` dans la readinessProbe du `mongodb-statefulset.yaml`.
+
+---
+
+### 4. Cluster Kubernetes inaccessible depuis kubectl (TLS handshake timeout)
+
+**Symptôme :**
+```
+Unable to connect to the server: net/http: TLS handshake timeout
+```
+
+**Cause :** Minikube sur Windows avec le driver Docker change son port d'exposition de l'API server à chaque redémarrage. Le kubeconfig local pointait vers un ancien port (ex. `127.0.0.1:50431`) qui n'était plus actif.
+
+**Solution :**
+```bash
+minikube update-context
+kubectl cluster-info
+```
+
+---
+
+### 5. Jenkins ne peut pas joindre Minikube (i/o timeout)
+
+**Symptôme :**
+```
+dial tcp 172.17.0.2:8443: i/o timeout
+Unable to connect to the server
+```
+
+**Cause :** Minikube était éteint ou le moteur Docker était arrêté au moment où Jenkins tentait de déployer. Jenkins utilise le `kubeconfig-jenkins.yaml` qui pointe vers `172.17.0.2:8443` — l'IP interne Docker de Minikube — inaccessible si Minikube est arrêté.
+
+**Solution :** S'assurer que Minikube est démarré **avant** de lancer le pipeline Jenkins :
+```bash
+minikube start
+minikube status  # vérifier que apiserver: Running
+```
+
+---
+
+### 6. Docker Desktop planté (500 Internal Server Error)
+
+**Symptôme :**
+```
+request returned 500 Internal Server Error for API route
+PROVIDER_DOCKER_NOT_RUNNING: deadline exceeded
+```
+
+**Cause :** Le backend Linux/WSL2 de Docker Desktop s'est figé, rendant le moteur Docker inaccessible depuis Windows.
+
+**Solution :** Redémarrage complet de Docker Desktop via l'interface graphique (clic droit sur l'icône → "Restart Docker Desktop") ou via PowerShell admin :
+```powershell
+Stop-Process -Name "Docker Desktop" -Force
+Start-Process "C:\Program Files\Docker\Docker\Docker Desktop.exe"
+```
+
+---
+
 © 2026 Aboubacryne Sadikh DIOP

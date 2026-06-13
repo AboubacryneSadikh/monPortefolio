@@ -1,0 +1,14 @@
+# Secrets Kubernetes - ne jamais commiter
+k8s/mongodb-secret.yaml
+
+# Variables d'environnement
+.env
+backend/.env
+
+# Dépendances
+node_modules/
+**/node_modules/
+
+# Build
+dist/
+build/
