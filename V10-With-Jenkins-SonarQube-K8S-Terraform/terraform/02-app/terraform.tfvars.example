@@ -1,0 +1,13 @@
+# Copier en terraform.tfvars — ne jamais commiter
+
+aws_region   = "us-east-1"
+cluster_name = "portfolio-eks"
+k8s_namespace = "portfolio"
+
+dockerhub_username = "aboubacryne"
+backend_image_tag  = "latest"
+frontend_image_tag = "latest"
+
+# MongoDB (sensible)
+mongo_username = "mongo"
+mongo_password = "CHANGE_ME_STRONG_PASSWORD"
