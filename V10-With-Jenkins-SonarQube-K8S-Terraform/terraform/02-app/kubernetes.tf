@@ -160,9 +160,18 @@ resource "kubernetes_deployment" "backend" {
 
           port { container_port = 5000 }
 
-          env { name = "PORT";     value = "5000" }
-          env { name = "NODE_ENV"; value = "production" }
-          env { name = "FRONTEND_URL"; value = "http://frontend-service:80" }
+          env {
+            name  = "PORT"
+            value = "5000"
+          }
+          env {
+            name  = "NODE_ENV"
+            value = "production"
+          }
+          env {
+            name  = "FRONTEND_URL"
+            value = "http://frontend-service:80"
+          }
 
           env {
             name = "MONGO_USERNAME"
