@@ -2,15 +2,15 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
-        DOCKERHUB_USERNAME    = "${DOCKERHUB_CREDENTIALS_USR}"
-        BACKEND_IMAGE         = "${DOCKERHUB_USERNAME}/portfolio-backend"
-        FRONTEND_IMAGE        = "${DOCKERHUB_USERNAME}/portfolio-frontend"
-        IMAGE_TAG             = "build-${BUILD_NUMBER}"
-        K8S_NAMESPACE         = "portfolio"
-        TF_DIR_INFRA          = "${WORKSPACE}/V10-With-Jenkins-SonarQube-K8S-Terraform/terraform/01-infra"
-        TF_DIR_APP            = "${WORKSPACE}/V10-With-Jenkins-SonarQube-K8S-Terraform/terraform/02-app"
-        AWS_CREDENTIALS       = credentials('aws-credentials')
+        DOCKERHUB_CREDENTIALS     = credentials('dockerhub-credentials')
+        DOCKERHUB_USERNAME        = "${DOCKERHUB_CREDENTIALS_USR}"
+        BACKEND_IMAGE             = "${DOCKERHUB_USERNAME}/portfolio-backend"
+        FRONTEND_IMAGE            = "${DOCKERHUB_USERNAME}/portfolio-frontend"
+        IMAGE_TAG                 = "build-${BUILD_NUMBER}"
+        K8S_NAMESPACE             = "portfolio"
+        TF_DIR_INFRA              = "${WORKSPACE}/V10-With-Jenkins-SonarQube-K8S-Terraform/terraform/01-infra"
+        TF_DIR_APP                = "${WORKSPACE}/V10-With-Jenkins-SonarQube-K8S-Terraform/terraform/02-app"
+        AWS_CREDENTIALS           = credentials('aws-credentials')
     }
 
     options {
@@ -25,13 +25,14 @@ pipeline {
         // ─── 0. CHECKOUT ────────────────────────────────────────────────────
         stage('Checkout') {
             steps {
+                // WipeWorkspace supprime physiquement le dossier avant le clone
+                // évite tout problème de corruption Git
                 checkout([
                     $class: 'GitSCM',
                     branches: [[name: '*/main']],
                     userRemoteConfigs: [[url: 'https://github.com/AboubacryneSadikh/monPortefolio.git']],
                     extensions: [
-                        [$class: 'CleanBeforeCheckout'],
-                        [$class: 'CleanCheckout']
+                        [$class: 'WipeWorkspace']
                     ]
                 ])
             }
@@ -57,20 +58,19 @@ pipeline {
         stage('Test conteneurs') {
             steps {
                 sh """
-                    docker run -d --name test-backend \
+                    docker run -d --name test-backend-${BUILD_NUMBER} \
                         -e PORT=5000 \
                         -e MONGODB_URI=mongodb://localhost:27017/test \
                         -e NODE_ENV=test \
-                        -p 5001:5000 \
                         ${BACKEND_IMAGE}:${IMAGE_TAG}
                     sleep 10
-                    docker inspect test-backend --format='{{.State.Status}}' | grep -q running
+                    docker inspect test-backend-${BUILD_NUMBER} --format='{{.State.Status}}' | grep -q running
                     echo 'Backend container OK'
                 """
             }
             post {
                 always {
-                    sh 'docker stop test-backend 2>/dev/null || true; docker rm test-backend 2>/dev/null || true'
+                    sh "docker stop test-backend-${BUILD_NUMBER} 2>/dev/null || true; docker rm test-backend-${BUILD_NUMBER} 2>/dev/null || true"
                 }
             }
         }
@@ -78,11 +78,10 @@ pipeline {
         // ─── 3. PUSH DOCKERHUB ──────────────────────────────────────────────
         stage('Push Docker Hub') {
             when {
-                expression {
-                    return env.GIT_BRANCH == 'origin/main' ||
-                           env.GIT_BRANCH == 'origin/master' ||
-                           env.BRANCH_NAME == 'main' ||
-                           env.BRANCH_NAME == 'master'
+                anyOf {
+                    branch 'main'
+                    branch 'master'
+                    expression { return env.GIT_BRANCH ==~ /origin\/(main|master)/ }
                 }
             }
             steps {
@@ -100,11 +99,10 @@ pipeline {
         // ─── 4. TERRAFORM — INFRASTRUCTURE (VPC + EKS) ──────────────────────
         stage('Terraform Infra') {
             when {
-                expression {
-                    return env.GIT_BRANCH == 'origin/main' ||
-                           env.GIT_BRANCH == 'origin/master' ||
-                           env.BRANCH_NAME == 'main' ||
-                           env.BRANCH_NAME == 'master'
+                anyOf {
+                    branch 'main'
+                    branch 'master'
+                    expression { return env.GIT_BRANCH ==~ /origin\/(main|master)/ }
                 }
             }
             environment {
@@ -115,7 +113,6 @@ pipeline {
             steps {
                 sh """
                     cd '${TF_DIR_INFRA}'
-
                     echo "=== Terraform Init ==="
                     terraform init -input=false
 
@@ -131,24 +128,22 @@ pipeline {
         // ─── 5. TERRAFORM — DEPLOIEMENT APP SUR EKS ─────────────────────────
         stage('Terraform Deploy App') {
             when {
-                expression {
-                    return env.GIT_BRANCH == 'origin/main' ||
-                           env.GIT_BRANCH == 'origin/master' ||
-                           env.BRANCH_NAME == 'main' ||
-                           env.BRANCH_NAME == 'master'
+                anyOf {
+                    branch 'main'
+                    branch 'master'
+                    expression { return env.GIT_BRANCH ==~ /origin\/(main|master)/ }
                 }
             }
             environment {
-                AWS_ACCESS_KEY_ID     = "${AWS_CREDENTIALS_USR}"
-                AWS_SECRET_ACCESS_KEY = "${AWS_CREDENTIALS_PSW}"
-                TF_VAR_mongo_password = credentials('mongo-password')
+                AWS_ACCESS_KEY_ID         = "${AWS_CREDENTIALS_USR}"
+                AWS_SECRET_ACCESS_KEY     = "${AWS_CREDENTIALS_PSW}"
+                TF_VAR_mongo_password     = credentials('mongo-password')
                 TF_VAR_backend_image_tag  = "${IMAGE_TAG}"
                 TF_VAR_frontend_image_tag = "${IMAGE_TAG}"
             }
             steps {
                 sh """
                     cd '${TF_DIR_APP}'
-
                     echo "=== Terraform Init ==="
                     terraform init -input=false
 
@@ -169,8 +164,8 @@ pipeline {
     post {
         always {
             sh """
-                docker rmi ${env.BACKEND_IMAGE}:${env.IMAGE_TAG} 2>/dev/null || true
-                docker rmi ${env.FRONTEND_IMAGE}:${env.IMAGE_TAG} 2>/dev/null || true
+                docker rmi ${BACKEND_IMAGE}:${IMAGE_TAG} 2>/dev/null || true
+                docker rmi ${FRONTEND_IMAGE}:${IMAGE_TAG} 2>/dev/null || true
                 docker image prune -f || true
             """
         }
@@ -178,13 +173,13 @@ pipeline {
             echo "Pipeline reussi - Build #${BUILD_NUMBER}"
             mail to: 'etablissementdinformatiqueacad@gmail.com',
                  subject: "[SUCCESS] Jenkins Build #${BUILD_NUMBER} - Portfolio K8S Terraform",
-                 body: "Pipeline termine avec succes.\n\nBuild : #${BUILD_NUMBER}\nBranche : ${env.GIT_BRANCH ?: 'unknown'}\n\nVoir les logs : ${BUILD_URL}"
+                 body: "Pipeline termine avec succes.\n\nBuild : #${BUILD_NUMBER}\nBranche : ${env.GIT_BRANCH}\n\nVoir les logs : ${BUILD_URL}"
         }
         failure {
             echo "Pipeline echoue - Build #${BUILD_NUMBER}"
             mail to: 'etablissementdinformatiqueacad@gmail.com',
                  subject: "[FAILURE] Jenkins Build #${BUILD_NUMBER} - Portfolio K8S Terraform",
-                 body: "Pipeline echoue.\n\nBuild : #${BUILD_NUMBER}\nBranche : ${env.GIT_BRANCH ?: 'unknown'}\n\nVoir les logs : ${BUILD_URL}"
+                 body: "Pipeline echoue.\n\nBuild : #${BUILD_NUMBER}\nBranche : ${env.GIT_BRANCH}\n\nVoir les logs : ${BUILD_URL}"
         }
     }
 }
