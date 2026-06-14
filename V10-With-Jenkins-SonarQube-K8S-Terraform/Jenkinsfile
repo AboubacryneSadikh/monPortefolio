@@ -1,14 +1,6 @@
 pipeline {
     agent any
 
-    parameters {
-        booleanParam(
-            name: 'DESTROY',
-            defaultValue: false,
-            description: 'Détruire toute l\'infrastructure AWS (VPC, EKS, NAT...). IRRÉVERSIBLE.'
-        )
-    }
-
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
         DOCKERHUB_USERNAME    = "${DOCKERHUB_CREDENTIALS_USR}"
@@ -25,68 +17,28 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '5'))
         timeout(time: 90, unit: 'MINUTES')
         disableConcurrentBuilds()
+        skipDefaultCheckout(true)
     }
 
     stages {
 
-        // ─── 1. DESTROY (optionnel) ──────────────────────────────────────────
-        stage('Terraform Destroy') {
-            when {
-                expression { return params.DESTROY == true }
-            }
-            environment {
-                AWS_ACCESS_KEY_ID     = "${AWS_CREDENTIALS_USR}"
-                AWS_SECRET_ACCESS_KEY = "${AWS_CREDENTIALS_PSW}"
-            }
+        // ─── 0. CHECKOUT ────────────────────────────────────────────────────
+        stage('Checkout') {
             steps {
-                echo "⚠️  DESTROY activé — suppression de l'infrastructure en cours..."
-                sh """
-                    # ── Étape 1 : détruire l'app K8S d'abord (si déployée)
-                    cd '${TF_DIR_APP}'
-                    terraform init -input=false
-                    terraform destroy -input=false -auto-approve \
-                        -var="mongo_password=dummy" \
-                        -var="dockerhub_username=dummy" \
-                        -var="backend_image_tag=dummy" \
-                        -var="frontend_image_tag=dummy" || true
-
-                    # ── Étape 2 : supprimer les node groups via AWS CLI (état désynchronisé possible)
-                    echo "=== Suppression des node groups via AWS CLI ==="
-                    NODE_GROUPS=\$(aws eks list-nodegroups --cluster-name portfolio-eks --region us-east-1 --query 'nodegroups[]' --output text 2>/dev/null || echo "")
-                    if [ -n "\$NODE_GROUPS" ]; then
-                        for NG in \$NODE_GROUPS; do
-                            echo "Suppression du node group: \$NG"
-                            aws eks delete-nodegroup --cluster-name portfolio-eks --nodegroup-name \$NG --region us-east-1
-                        done
-                        echo "Attente de la suppression des node groups..."
-                        for NG in \$NODE_GROUPS; do
-                            aws eks wait nodegroup-deleted --cluster-name portfolio-eks --nodegroup-name \$NG --region us-east-1
-                            echo "Node group \$NG supprimé."
-                        done
-                    else
-                        echo "Aucun node group à supprimer."
-                    fi
-
-                    # ── Étape 3 : détruire le reste de l'infra via Terraform
-                    cd '${TF_DIR_INFRA}'
-                    terraform init -input=false
-                    terraform destroy -input=false -auto-approve
-                """
-                echo "✅ Infrastructure détruite. Arrêt du pipeline."
-            }
-            post {
-                always {
-                    // On stoppe le pipeline après le destroy
-                    script { currentBuild.result = 'SUCCESS' }
-                }
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[url: 'https://github.com/AboubacryneSadikh/monPortefolio.git']],
+                    extensions: [
+                        [$class: 'CleanBeforeCheckout'],
+                        [$class: 'CleanCheckout']
+                    ]
+                ])
             }
         }
 
-        // ─── 2. BUILD DOCKER ────────────────────────────────────────────────
+        // ─── 1. BUILD DOCKER ────────────────────────────────────────────────
         stage('Build Images Docker') {
-            when {
-                expression { return params.DESTROY == false }
-            }
             parallel {
                 stage('Build Backend') {
                     steps {
@@ -101,11 +53,8 @@ pipeline {
             }
         }
 
-        // ─── 3. TEST ────────────────────────────────────────────────────────
+        // ─── 2. TEST ────────────────────────────────────────────────────────
         stage('Test conteneurs') {
-            when {
-                expression { return params.DESTROY == false }
-            }
             steps {
                 sh """
                     docker run -d --name test-backend \
@@ -126,17 +75,14 @@ pipeline {
             }
         }
 
-        // ─── 4. PUSH DOCKERHUB ──────────────────────────────────────────────
+        // ─── 3. PUSH DOCKERHUB ──────────────────────────────────────────────
         stage('Push Docker Hub') {
             when {
-                allOf {
-                    expression { return params.DESTROY == false }
-                    expression {
-                        return env.GIT_BRANCH == 'origin/main' ||
-                               env.GIT_BRANCH == 'origin/master' ||
-                               env.BRANCH_NAME == 'main' ||
-                               env.BRANCH_NAME == 'master'
-                    }
+                expression {
+                    return env.GIT_BRANCH == 'origin/main' ||
+                           env.GIT_BRANCH == 'origin/master' ||
+                           env.BRANCH_NAME == 'main' ||
+                           env.BRANCH_NAME == 'master'
                 }
             }
             steps {
@@ -151,17 +97,14 @@ pipeline {
             }
         }
 
-        // ─── 5. TERRAFORM — INFRASTRUCTURE (VPC + EKS) ──────────────────────
+        // ─── 4. TERRAFORM — INFRASTRUCTURE (VPC + EKS) ──────────────────────
         stage('Terraform Infra') {
             when {
-                allOf {
-                    expression { return params.DESTROY == false }
-                    expression {
-                        return env.GIT_BRANCH == 'origin/main' ||
-                               env.GIT_BRANCH == 'origin/master' ||
-                               env.BRANCH_NAME == 'main' ||
-                               env.BRANCH_NAME == 'master'
-                    }
+                expression {
+                    return env.GIT_BRANCH == 'origin/main' ||
+                           env.GIT_BRANCH == 'origin/master' ||
+                           env.BRANCH_NAME == 'main' ||
+                           env.BRANCH_NAME == 'master'
                 }
             }
             environment {
@@ -185,17 +128,14 @@ pipeline {
             }
         }
 
-        // ─── 6. TERRAFORM — DEPLOIEMENT APP SUR EKS ─────────────────────────
+        // ─── 5. TERRAFORM — DEPLOIEMENT APP SUR EKS ─────────────────────────
         stage('Terraform Deploy App') {
             when {
-                allOf {
-                    expression { return params.DESTROY == false }
-                    expression {
-                        return env.GIT_BRANCH == 'origin/main' ||
-                               env.GIT_BRANCH == 'origin/master' ||
-                               env.BRANCH_NAME == 'main' ||
-                               env.BRANCH_NAME == 'master'
-                    }
+                expression {
+                    return env.GIT_BRANCH == 'origin/main' ||
+                           env.GIT_BRANCH == 'origin/master' ||
+                           env.BRANCH_NAME == 'main' ||
+                           env.BRANCH_NAME == 'master'
                 }
             }
             environment {
@@ -229,22 +169,22 @@ pipeline {
     post {
         always {
             sh """
-                docker rmi ${BACKEND_IMAGE}:${IMAGE_TAG} 2>/dev/null || true
-                docker rmi ${FRONTEND_IMAGE}:${IMAGE_TAG} 2>/dev/null || true
-                docker image prune -f
+                docker rmi ${env.BACKEND_IMAGE}:${env.IMAGE_TAG} 2>/dev/null || true
+                docker rmi ${env.FRONTEND_IMAGE}:${env.IMAGE_TAG} 2>/dev/null || true
+                docker image prune -f || true
             """
         }
         success {
             echo "Pipeline reussi - Build #${BUILD_NUMBER}"
             mail to: 'etablissementdinformatiqueacad@gmail.com',
                  subject: "[SUCCESS] Jenkins Build #${BUILD_NUMBER} - Portfolio K8S Terraform",
-                 body: "Pipeline termine avec succes.\n\nBuild : #${BUILD_NUMBER}\nBranche : ${GIT_BRANCH}\n\nVoir les logs : ${BUILD_URL}"
+                 body: "Pipeline termine avec succes.\n\nBuild : #${BUILD_NUMBER}\nBranche : ${env.GIT_BRANCH ?: 'unknown'}\n\nVoir les logs : ${BUILD_URL}"
         }
         failure {
             echo "Pipeline echoue - Build #${BUILD_NUMBER}"
             mail to: 'etablissementdinformatiqueacad@gmail.com',
                  subject: "[FAILURE] Jenkins Build #${BUILD_NUMBER} - Portfolio K8S Terraform",
-                 body: "Pipeline echoue.\n\nBuild : #${BUILD_NUMBER}\nBranche : ${GIT_BRANCH}\n\nVoir les logs : ${BUILD_URL}"
+                 body: "Pipeline echoue.\n\nBuild : #${BUILD_NUMBER}\nBranche : ${env.GIT_BRANCH ?: 'unknown'}\n\nVoir les logs : ${BUILD_URL}"
         }
     }
 }
