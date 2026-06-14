@@ -41,12 +41,22 @@ pipeline {
             steps {
                 echo "⚠️  DESTROY activé — suppression de l'infrastructure en cours..."
                 sh """
+                    # ── Étape 1 : détruire l'app K8S d'abord (si déployée)
                     cd '${TF_DIR_APP}'
                     terraform init -input=false
-                    terraform destroy -input=false -auto-approve || true
+                    terraform destroy -input=false -auto-approve \
+                        -var="mongo_password=dummy" \
+                        -var="dockerhub_username=dummy" \
+                        -var="backend_image_tag=dummy" \
+                        -var="frontend_image_tag=dummy" || true
 
+                    # ── Étape 2 : détruire le node group EN PREMIER
                     cd '${TF_DIR_INFRA}'
                     terraform init -input=false
+                    terraform destroy -input=false -auto-approve \
+                        -target=aws_eks_node_group.main || true
+
+                    # ── Étape 3 : détruire le reste de l'infra
                     terraform destroy -input=false -auto-approve
                 """
                 echo "✅ Infrastructure détruite. Arrêt du pipeline."
