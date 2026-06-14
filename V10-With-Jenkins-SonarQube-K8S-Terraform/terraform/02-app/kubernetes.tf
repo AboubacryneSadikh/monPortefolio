@@ -199,14 +199,20 @@ resource "kubernetes_deployment" "backend" {
           }
 
           readiness_probe {
-            http_get { path = "/api/projects"; port = 5000 }
+            http_get {
+              path = "/api/projects"
+              port = 5000
+            }
             initial_delay_seconds = 20
             period_seconds        = 10
             failure_threshold     = 10
           }
 
           liveness_probe {
-            http_get { path = "/api/projects"; port = 5000 }
+            http_get {
+              path = "/api/projects"
+              port = 5000
+            }
             initial_delay_seconds = 40
             period_seconds        = 20
             failure_threshold     = 5
@@ -265,7 +271,10 @@ resource "kubernetes_deployment" "frontend" {
           port { container_port = 80 }
 
           readiness_probe {
-            http_get { path = "/"; port = 80 }
+            http_get {
+              path = "/"
+              port = 80
+            }
             initial_delay_seconds = 10
             period_seconds        = 10
             failure_threshold     = 5
