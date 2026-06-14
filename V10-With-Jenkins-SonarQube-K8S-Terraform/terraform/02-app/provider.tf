@@ -12,14 +12,13 @@ terraform {
     }
   }
 
-  # Backend S3 (décommenter après création du bucket)
-  # backend "s3" {
-  #   bucket         = "portfolio-terraform-state"
-  #   key            = "02-app/terraform.tfstate"
-  #   region         = "us-east-1"
-  #   encrypt        = true
-  #   dynamodb_table = "portfolio-terraform-locks"
-  # }
+  backend "s3" {
+    bucket         = "portfolio-terraform-state-aboubacryne"
+    key            = "02-app/terraform.tfstate"
+    region         = "us-east-1"
+    encrypt        = true
+    dynamodb_table = "portfolio-terraform-locks"
+  }
 }
 
 provider "aws" {
