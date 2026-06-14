@@ -77,11 +77,6 @@ pipeline {
 
         // ─── 3. PUSH DOCKERHUB ──────────────────────────────────────────────
         stage('Push Docker Hub') {
-            when {
-                expression {
-                    return env.GIT_BRANCH in ['origin/main', 'origin/master', 'main', 'master']
-                }
-            }
             steps {
                 sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
                 retry(3) { sh "docker push ${BACKEND_IMAGE}:${IMAGE_TAG}" }
@@ -96,11 +91,6 @@ pipeline {
 
         // ─── 4. TERRAFORM — INFRASTRUCTURE (VPC + EKS) ──────────────────────
         stage('Terraform Infra') {
-            when {
-                expression {
-                    return env.GIT_BRANCH in ['origin/main', 'origin/master', 'main', 'master']
-                }
-            }
             environment {
                 AWS_ACCESS_KEY_ID     = "${AWS_CREDENTIALS_USR}"
                 AWS_SECRET_ACCESS_KEY = "${AWS_CREDENTIALS_PSW}"
@@ -123,11 +113,6 @@ pipeline {
 
         // ─── 5. TERRAFORM — DEPLOIEMENT APP SUR EKS ─────────────────────────
         stage('Terraform Deploy App') {
-            when {
-                expression {
-                    return env.GIT_BRANCH in ['origin/main', 'origin/master', 'main', 'master']
-                }
-            }
             environment {
                 AWS_ACCESS_KEY_ID         = "${AWS_CREDENTIALS_USR}"
                 AWS_SECRET_ACCESS_KEY     = "${AWS_CREDENTIALS_PSW}"
