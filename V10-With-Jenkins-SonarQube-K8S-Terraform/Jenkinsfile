@@ -1,6 +1,14 @@
 pipeline {
     agent any
 
+    parameters {
+        booleanParam(
+            name: 'DESTROY',
+            defaultValue: false,
+            description: 'Détruire toute l\'infrastructure AWS (VPC, EKS, NAT...). IRRÉVERSIBLE.'
+        )
+    }
+
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
         DOCKERHUB_USERNAME    = "${DOCKERHUB_CREDENTIALS_USR}"
@@ -21,10 +29,41 @@ pipeline {
 
     stages {
 
-       
+        // ─── 1. DESTROY (optionnel) ──────────────────────────────────────────
+        stage('Terraform Destroy') {
+            when {
+                expression { return params.DESTROY == true }
+            }
+            environment {
+                AWS_ACCESS_KEY_ID     = "${AWS_CREDENTIALS_USR}"
+                AWS_SECRET_ACCESS_KEY = "${AWS_CREDENTIALS_PSW}"
+            }
+            steps {
+                echo "⚠️  DESTROY activé — suppression de l'infrastructure en cours..."
+                sh """
+                    cd '${TF_DIR_APP}'
+                    terraform init -input=false
+                    terraform destroy -input=false -auto-approve || true
+
+                    cd '${TF_DIR_INFRA}'
+                    terraform init -input=false
+                    terraform destroy -input=false -auto-approve
+                """
+                echo "✅ Infrastructure détruite. Arrêt du pipeline."
+            }
+            post {
+                always {
+                    // On stoppe le pipeline après le destroy
+                    script { currentBuild.result = 'SUCCESS' }
+                }
+            }
+        }
 
         // ─── 2. BUILD DOCKER ────────────────────────────────────────────────
         stage('Build Images Docker') {
+            when {
+                expression { return params.DESTROY == false }
+            }
             parallel {
                 stage('Build Backend') {
                     steps {
@@ -41,6 +80,9 @@ pipeline {
 
         // ─── 3. TEST ────────────────────────────────────────────────────────
         stage('Test conteneurs') {
+            when {
+                expression { return params.DESTROY == false }
+            }
             steps {
                 sh """
                     docker run -d --name test-backend \
@@ -64,11 +106,14 @@ pipeline {
         // ─── 4. PUSH DOCKERHUB ──────────────────────────────────────────────
         stage('Push Docker Hub') {
             when {
-                expression {
-                    return env.GIT_BRANCH == 'origin/main' ||
-                           env.GIT_BRANCH == 'origin/master' ||
-                           env.BRANCH_NAME == 'main' ||
-                           env.BRANCH_NAME == 'master'
+                allOf {
+                    expression { return params.DESTROY == false }
+                    expression {
+                        return env.GIT_BRANCH == 'origin/main' ||
+                               env.GIT_BRANCH == 'origin/master' ||
+                               env.BRANCH_NAME == 'main' ||
+                               env.BRANCH_NAME == 'master'
+                    }
                 }
             }
             steps {
@@ -86,11 +131,14 @@ pipeline {
         // ─── 5. TERRAFORM — INFRASTRUCTURE (VPC + EKS) ──────────────────────
         stage('Terraform Infra') {
             when {
-                expression {
-                    return env.GIT_BRANCH == 'origin/main' ||
-                           env.GIT_BRANCH == 'origin/master' ||
-                           env.BRANCH_NAME == 'main' ||
-                           env.BRANCH_NAME == 'master'
+                allOf {
+                    expression { return params.DESTROY == false }
+                    expression {
+                        return env.GIT_BRANCH == 'origin/main' ||
+                               env.GIT_BRANCH == 'origin/master' ||
+                               env.BRANCH_NAME == 'main' ||
+                               env.BRANCH_NAME == 'master'
+                    }
                 }
             }
             environment {
@@ -117,11 +165,14 @@ pipeline {
         // ─── 6. TERRAFORM — DEPLOIEMENT APP SUR EKS ─────────────────────────
         stage('Terraform Deploy App') {
             when {
-                expression {
-                    return env.GIT_BRANCH == 'origin/main' ||
-                           env.GIT_BRANCH == 'origin/master' ||
-                           env.BRANCH_NAME == 'main' ||
-                           env.BRANCH_NAME == 'master'
+                allOf {
+                    expression { return params.DESTROY == false }
+                    expression {
+                        return env.GIT_BRANCH == 'origin/main' ||
+                               env.GIT_BRANCH == 'origin/master' ||
+                               env.BRANCH_NAME == 'main' ||
+                               env.BRANCH_NAME == 'master'
+                    }
                 }
             }
             environment {
