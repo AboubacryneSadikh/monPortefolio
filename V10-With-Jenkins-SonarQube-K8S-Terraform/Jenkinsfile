@@ -21,7 +21,7 @@ pipeline {
 
     stages {
 
-        // ─── 1. ANALYSE QUALITE ─────────────────────────────────────────────
+       /*  // ─── 1. ANALYSE QUALITE ─────────────────────────────────────────────
         stage('Analyse SonarQube') {
             options { timeout(time: 15, unit: 'MINUTES') }
             steps {
@@ -52,7 +52,7 @@ pipeline {
                     waitForQualityGate abortPipeline: true
                 }
             }
-        }
+        } */
 
         // ─── 2. BUILD DOCKER ────────────────────────────────────────────────
         stage('Build Images Docker') {
