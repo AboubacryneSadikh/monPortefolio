@@ -32,6 +32,8 @@ resource "kubernetes_stateful_set" "mongodb" {
     namespace = kubernetes_namespace.portfolio.metadata[0].name
   }
 
+  wait_for_rollout = false
+
   spec {
     service_name = "mongodb-service"
     replicas     = 1
@@ -134,6 +136,8 @@ resource "kubernetes_deployment" "backend" {
     name      = "backend"
     namespace = kubernetes_namespace.portfolio.metadata[0].name
   }
+
+  wait_for_rollout = false
 
   spec {
     replicas = 1
