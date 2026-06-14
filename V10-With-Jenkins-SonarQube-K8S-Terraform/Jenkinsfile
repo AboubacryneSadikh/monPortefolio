@@ -50,13 +50,26 @@ pipeline {
                         -var="backend_image_tag=dummy" \
                         -var="frontend_image_tag=dummy" || true
 
-                    # ── Étape 2 : détruire le node group EN PREMIER
+                    # ── Étape 2 : supprimer les node groups via AWS CLI (état désynchronisé possible)
+                    echo "=== Suppression des node groups via AWS CLI ==="
+                    NODE_GROUPS=\$(aws eks list-nodegroups --cluster-name portfolio-eks --region us-east-1 --query 'nodegroups[]' --output text 2>/dev/null || echo "")
+                    if [ -n "\$NODE_GROUPS" ]; then
+                        for NG in \$NODE_GROUPS; do
+                            echo "Suppression du node group: \$NG"
+                            aws eks delete-nodegroup --cluster-name portfolio-eks --nodegroup-name \$NG --region us-east-1
+                        done
+                        echo "Attente de la suppression des node groups..."
+                        for NG in \$NODE_GROUPS; do
+                            aws eks wait nodegroup-deleted --cluster-name portfolio-eks --nodegroup-name \$NG --region us-east-1
+                            echo "Node group \$NG supprimé."
+                        done
+                    else
+                        echo "Aucun node group à supprimer."
+                    fi
+
+                    # ── Étape 3 : détruire le reste de l'infra via Terraform
                     cd '${TF_DIR_INFRA}'
                     terraform init -input=false
-                    terraform destroy -input=false -auto-approve \
-                        -target=aws_eks_node_group.main || true
-
-                    # ── Étape 3 : détruire le reste de l'infra
                     terraform destroy -input=false -auto-approve
                 """
                 echo "✅ Infrastructure détruite. Arrêt du pipeline."
