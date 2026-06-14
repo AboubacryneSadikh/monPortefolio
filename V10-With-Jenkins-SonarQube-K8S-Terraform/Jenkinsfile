@@ -78,10 +78,8 @@ pipeline {
         // ─── 3. PUSH DOCKERHUB ──────────────────────────────────────────────
         stage('Push Docker Hub') {
             when {
-                anyOf {
-                    branch 'main'
-                    branch 'master'
-                    expression { return env.GIT_BRANCH ==~ /origin\/(main|master)/ }
+                expression {
+                    return env.GIT_BRANCH in ['origin/main', 'origin/master', 'main', 'master']
                 }
             }
             steps {
@@ -99,10 +97,8 @@ pipeline {
         // ─── 4. TERRAFORM — INFRASTRUCTURE (VPC + EKS) ──────────────────────
         stage('Terraform Infra') {
             when {
-                anyOf {
-                    branch 'main'
-                    branch 'master'
-                    expression { return env.GIT_BRANCH ==~ /origin\/(main|master)/ }
+                expression {
+                    return env.GIT_BRANCH in ['origin/main', 'origin/master', 'main', 'master']
                 }
             }
             environment {
@@ -128,10 +124,8 @@ pipeline {
         // ─── 5. TERRAFORM — DEPLOIEMENT APP SUR EKS ─────────────────────────
         stage('Terraform Deploy App') {
             when {
-                anyOf {
-                    branch 'main'
-                    branch 'master'
-                    expression { return env.GIT_BRANCH ==~ /origin\/(main|master)/ }
+                expression {
+                    return env.GIT_BRANCH in ['origin/main', 'origin/master', 'main', 'master']
                 }
             }
             environment {
