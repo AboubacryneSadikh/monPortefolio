@@ -73,9 +73,10 @@ resource "aws_security_group" "eks_cluster" {
 # ─── Cluster EKS ─────────────────────────────────────────────────────────────
 
 resource "aws_eks_cluster" "main" {
-  name     = var.cluster_name
-  role_arn = aws_iam_role.eks_cluster.arn
-  version  = var.kubernetes_version
+  name                          = var.cluster_name
+  role_arn                      = aws_iam_role.eks_cluster.arn
+  version                       = var.kubernetes_version
+  bootstrap_self_managed_addons = false
 
   vpc_config {
     subnet_ids              = concat(aws_subnet.public[*].id, aws_subnet.private[*].id)
