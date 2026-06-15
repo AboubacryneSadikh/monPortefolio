@@ -8,7 +8,6 @@ pipeline {
         FRONTEND_IMAGE            = "${DOCKERHUB_USERNAME}/portfolio-frontend"
         IMAGE_TAG                 = "build-${BUILD_NUMBER}"
         K8S_NAMESPACE             = "portfolio"
-        TF_DIR_INFRA              = "${WORKSPACE}/V10-With-Jenkins-SonarQube-K8S-Terraform/terraform/01-infra"
         TF_DIR_APP                = "${WORKSPACE}/V10-With-Jenkins-SonarQube-K8S-Terraform/terraform/02-app"
         AWS_CREDENTIALS           = credentials('aws-credentials')
     }
@@ -89,29 +88,7 @@ pipeline {
             }
         }
 
-        // ─── 4. TERRAFORM — INFRASTRUCTURE (VPC + EKS) ──────────────────────
-        stage('Terraform Infra') {
-            environment {
-                AWS_ACCESS_KEY_ID     = "${AWS_CREDENTIALS_USR}"
-                AWS_SECRET_ACCESS_KEY = "${AWS_CREDENTIALS_PSW}"
-                TF_VAR_mongo_password = credentials('mongo-password')
-            }
-            steps {
-                sh """
-                    cd '${TF_DIR_INFRA}'
-                    echo "=== Terraform Init ==="
-                    terraform init -input=false
-
-                    echo "=== Terraform Plan ==="
-                    terraform plan -input=false -out=tfplan-infra
-
-                    echo "=== Terraform Apply ==="
-                    terraform apply -input=false -auto-approve tfplan-infra
-                """
-            }
-        }
-
-        // ─── 5. TERRAFORM — DEPLOIEMENT APP SUR EKS ─────────────────────────
+        // ─── 4. TERRAFORM — DEPLOIEMENT APP SUR EKS ─────────────────────────
         stage('Terraform Deploy App') {
             environment {
                 AWS_ACCESS_KEY_ID         = "${AWS_CREDENTIALS_USR}"
