@@ -1,15 +1,34 @@
 pipeline {
     agent any
 
+    // ─── PARAMÈTRES : cocher une ou les deux cibles ───────────────────────────
+    parameters {
+        booleanParam(
+            name: 'DEPLOY_LOCAL',
+            defaultValue: true,
+            description: 'Déployer sur Kubernetes local (Minikube)'
+        )
+        booleanParam(
+            name: 'DEPLOY_AWS',
+            defaultValue: true,
+            description: 'Déployer sur AWS EKS via Terraform'
+        )
+        string(
+            name: 'IMAGE_TAG_OVERRIDE',
+            defaultValue: '',
+            description: 'Tag Docker à forcer (laisser vide = build-${BUILD_NUMBER})'
+        )
+    }
+
     environment {
         DOCKERHUB_CREDENTIALS     = credentials('dockerhub-credentials')
         DOCKERHUB_USERNAME        = "${DOCKERHUB_CREDENTIALS_USR}"
         BACKEND_IMAGE             = "${DOCKERHUB_USERNAME}/portfolio-backend"
         FRONTEND_IMAGE            = "${DOCKERHUB_USERNAME}/portfolio-frontend"
-        IMAGE_TAG                 = "build-${BUILD_NUMBER}"
+        IMAGE_TAG                 = "${params.IMAGE_TAG_OVERRIDE ?: "build-${BUILD_NUMBER}"}"
         K8S_NAMESPACE             = "portfolio"
+        K8S_DIR                   = "${WORKSPACE}/V10-With-Jenkins-SonarQube-K8S-Terraform/k8s"
         TF_DIR_APP                = "${WORKSPACE}/V10-With-Jenkins-SonarQube-K8S-Terraform/terraform/02-app"
-        AWS_CREDENTIALS           = credentials('aws-credentials')
     }
 
     options {
@@ -24,15 +43,11 @@ pipeline {
         // ─── 0. CHECKOUT ────────────────────────────────────────────────────
         stage('Checkout') {
             steps {
-                // WipeWorkspace supprime physiquement le dossier avant le clone
-                // évite tout problème de corruption Git
                 checkout([
                     $class: 'GitSCM',
                     branches: [[name: '*/main']],
                     userRemoteConfigs: [[url: 'https://github.com/AboubacryneSadikh/monPortefolio.git']],
-                    extensions: [
-                        [$class: 'WipeWorkspace']
-                    ]
+                    extensions: [[$class: 'WipeWorkspace']]
                 ])
             }
         }
@@ -42,12 +57,22 @@ pipeline {
             parallel {
                 stage('Build Backend') {
                     steps {
-                        sh "docker build -t ${BACKEND_IMAGE}:${IMAGE_TAG} -t ${BACKEND_IMAGE}:latest ${WORKSPACE}/V10-With-Jenkins-SonarQube-K8S-Terraform/backend"
+                        sh """
+                            docker build \
+                                -t ${BACKEND_IMAGE}:${IMAGE_TAG} \
+                                -t ${BACKEND_IMAGE}:latest \
+                                ${WORKSPACE}/V10-With-Jenkins-SonarQube-K8S-Terraform/backend
+                        """
                     }
                 }
                 stage('Build Frontend') {
                     steps {
-                        sh "docker build -t ${FRONTEND_IMAGE}:${IMAGE_TAG} -t ${FRONTEND_IMAGE}:latest ${WORKSPACE}/V10-With-Jenkins-SonarQube-K8S-Terraform/frontend"
+                        sh """
+                            docker build \
+                                -t ${FRONTEND_IMAGE}:${IMAGE_TAG} \
+                                -t ${FRONTEND_IMAGE}:latest \
+                                ${WORKSPACE}/V10-With-Jenkins-SonarQube-K8S-Terraform/frontend
+                        """
                     }
                 }
             }
@@ -69,7 +94,10 @@ pipeline {
             }
             post {
                 always {
-                    sh "docker stop test-backend-${BUILD_NUMBER} 2>/dev/null || true; docker rm test-backend-${BUILD_NUMBER} 2>/dev/null || true"
+                    sh """
+                        docker stop test-backend-${BUILD_NUMBER} 2>/dev/null || true
+                        docker rm   test-backend-${BUILD_NUMBER} 2>/dev/null || true
+                    """
                 }
             }
         }
@@ -88,35 +116,95 @@ pipeline {
             }
         }
 
-        // ─── 4. TERRAFORM — DEPLOIEMENT APP SUR EKS ─────────────────────────
-        stage('Terraform Deploy App') {
-            environment {
-                AWS_ACCESS_KEY_ID         = "${AWS_CREDENTIALS_USR}"
-                AWS_SECRET_ACCESS_KEY     = "${AWS_CREDENTIALS_PSW}"
-                TF_VAR_mongo_password     = credentials('mongo-password')
-                TF_VAR_backend_image_tag  = "${IMAGE_TAG}"
-                TF_VAR_frontend_image_tag = "${IMAGE_TAG}"
-            }
-            steps {
-                sh """
-                    cd '${TF_DIR_APP}'
-                    echo "=== Terraform Init ==="
-                    terraform init -input=false
+        // ─── 4. DÉPLOIEMENTS EN PARALLÈLE ───────────────────────────────────
+        stage('Deploy') {
+            parallel {
 
-                    echo "=== Terraform Plan ==="
-                    terraform plan -input=false -out=tfplan-app
+                // ─── 4a. LOCAL — Minikube / Kind ────────────────────────────
+                stage('Deploy Local (Minikube)') {
+                    when {
+                        expression { params.DEPLOY_LOCAL == true }
+                    }
+                    steps {
+                        sh """
+                            echo "=== Déploiement sur Kubernetes LOCAL ==="
 
-                    echo "=== Terraform Apply ==="
-                    terraform apply -input=false -auto-approve tfplan-app
+                            # Mise à jour des tags dans les deployments
+                            sed -i "s|image: ${DOCKERHUB_USERNAME}/portfolio-backend:.*|image: ${BACKEND_IMAGE}:${IMAGE_TAG}|g" \
+                                ${K8S_DIR}/backend-deployment.yaml
+                            sed -i "s|image: ${DOCKERHUB_USERNAME}/portfolio-frontend:.*|image: ${FRONTEND_IMAGE}:${IMAGE_TAG}|g" \
+                                ${K8S_DIR}/frontend-deployment.yaml
 
-                    echo "=== URL Frontend ==="
-                    terraform output frontend_url
-                """
-            }
-        }
+                            echo "=== Application des manifests ==="
+                            kubectl apply -f ${K8S_DIR}/namespace.yaml
+                            kubectl apply -f ${K8S_DIR}/mongodb-secret.yaml
+                            kubectl apply -f ${K8S_DIR}/mongodb-service.yaml
+                            kubectl apply -f ${K8S_DIR}/mongodb-statefulset.yaml
+                            kubectl apply -f ${K8S_DIR}/backend-service.yaml
+                            kubectl apply -f ${K8S_DIR}/backend-deployment.yaml
+                            kubectl apply -f ${K8S_DIR}/frontend-service.yaml
+                            kubectl apply -f ${K8S_DIR}/frontend-deployment.yaml
+
+                            echo "=== Attente du rollout backend ==="
+                            kubectl rollout status deployment/backend  -n ${K8S_NAMESPACE} --timeout=120s
+
+                            echo "=== Attente du rollout frontend ==="
+                            kubectl rollout status deployment/frontend -n ${K8S_NAMESPACE} --timeout=120s
+
+                            echo "=== URL d'accès local ==="
+                            echo "Lancer : minikube service frontend-service -n ${K8S_NAMESPACE} --url"
+                            echo "Ou     : kubectl port-forward svc/frontend-service 8080:80 -n ${K8S_NAMESPACE}"
+                        """
+                    }
+                    post {
+                        success { echo "✅ Déploiement LOCAL réussi — Build #${BUILD_NUMBER}" }
+                        failure { echo "❌ Déploiement LOCAL échoué — Build #${BUILD_NUMBER}" }
+                    }
+                }
+
+                // ─── 4b. AWS — EKS via Terraform ────────────────────────────
+                stage('Deploy AWS (EKS + Terraform)') {
+                    when {
+                        expression { params.DEPLOY_AWS == true }
+                    }
+                    environment {
+                        AWS_CREDENTIALS           = credentials('aws-credentials')
+                        AWS_ACCESS_KEY_ID         = "${AWS_CREDENTIALS_USR}"
+                        AWS_SECRET_ACCESS_KEY     = "${AWS_CREDENTIALS_PSW}"
+                        TF_VAR_mongo_password     = credentials('mongo-password')
+                        TF_VAR_backend_image_tag  = "${IMAGE_TAG}"
+                        TF_VAR_frontend_image_tag = "${IMAGE_TAG}"
+                    }
+                    steps {
+                        sh """
+                            echo "=== Déploiement sur AWS EKS via Terraform ==="
+                            cd '${TF_DIR_APP}'
+
+                            echo "=== Terraform Init ==="
+                            terraform init -input=false
+
+                            echo "=== Terraform Plan ==="
+                            terraform plan -input=false -out=tfplan-app
+
+                            echo "=== Terraform Apply ==="
+                            terraform apply -input=false -auto-approve tfplan-app
+
+                            echo "=== URL Frontend (AWS LoadBalancer) ==="
+                            terraform output frontend_url
+                        """
+                    }
+                    post {
+                        success { echo "✅ Déploiement AWS réussi — Build #${BUILD_NUMBER}" }
+                        failure { echo "❌ Déploiement AWS échoué — Build #${BUILD_NUMBER}" }
+                    }
+                }
+
+            } // fin parallel
+        } // fin Deploy
 
     }
 
+    // ─── POST GLOBAL ────────────────────────────────────────────────────────
     post {
         always {
             sh """
@@ -126,16 +214,31 @@ pipeline {
             """
         }
         success {
-            echo "Pipeline reussi - Build #${BUILD_NUMBER}"
+            echo "Pipeline réussi — Build #${BUILD_NUMBER} — Local:${params.DEPLOY_LOCAL} / AWS:${params.DEPLOY_AWS}"
             mail to: 'etablissementdinformatiqueacad@gmail.com',
-                 subject: "[SUCCESS] Jenkins Build #${BUILD_NUMBER} - Portfolio K8S Terraform",
-                 body: "Pipeline termine avec succes.\n\nBuild : #${BUILD_NUMBER}\nBranche : ${env.GIT_BRANCH}\n\nVoir les logs : ${BUILD_URL}"
+                 subject: "[SUCCESS] Jenkins Build #${BUILD_NUMBER} — Portfolio (local:${params.DEPLOY_LOCAL} / aws:${params.DEPLOY_AWS})",
+                 body: """Pipeline terminé avec succès.
+
+Build    : #${BUILD_NUMBER}
+Local    : ${params.DEPLOY_LOCAL}
+AWS      : ${params.DEPLOY_AWS}
+Branche  : ${env.GIT_BRANCH}
+Image    : ${IMAGE_TAG}
+
+Voir les logs : ${BUILD_URL}"""
         }
         failure {
-            echo "Pipeline echoue - Build #${BUILD_NUMBER}"
+            echo "Pipeline échoué — Build #${BUILD_NUMBER} — Local:${params.DEPLOY_LOCAL} / AWS:${params.DEPLOY_AWS}"
             mail to: 'etablissementdinformatiqueacad@gmail.com',
-                 subject: "[FAILURE] Jenkins Build #${BUILD_NUMBER} - Portfolio K8S Terraform",
-                 body: "Pipeline echoue.\n\nBuild : #${BUILD_NUMBER}\nBranche : ${env.GIT_BRANCH}\n\nVoir les logs : ${BUILD_URL}"
+                 subject: "[FAILURE] Jenkins Build #${BUILD_NUMBER} — Portfolio (local:${params.DEPLOY_LOCAL} / aws:${params.DEPLOY_AWS})",
+                 body: """Pipeline échoué.
+
+Build    : #${BUILD_NUMBER}
+Local    : ${params.DEPLOY_LOCAL}
+AWS      : ${params.DEPLOY_AWS}
+Branche  : ${env.GIT_BRANCH}
+
+Voir les logs : ${BUILD_URL}"""
         }
     }
 }
