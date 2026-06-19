@@ -6,14 +6,56 @@
 GitHub Push
     │
     ▼
-Jenkins Pipeline
+Jenkins Pipeline  (paramètre DEPLOY_TARGET = local | aws)
     │
     ├── 1. Checkout          → Récupère le code source
-    ├── 2. Build Docker      → Construit les images backend et frontend
+    ├── 2. Build Docker      → Construit les images backend et frontend (parallèle)
     ├── 3. Test conteneurs   → Vérifie que le backend démarre correctement
-    ├── 4. Push Docker Hub   → Publie les images (branche main uniquement)
-    └── 5. Déploiement       → Lance les conteneurs via docker compose
+    ├── 4. Push Docker Hub   → Publie les images sur Docker Hub
+    │
+    ├── [Si DEPLOY_TARGET = local]
+    │   └── 5a. Deploy Local → kubectl apply sur Minikube (NodePort)
+    │
+    └── [Si DEPLOY_TARGET = aws]
+        └── 5b. Deploy AWS   → Terraform apply sur EKS (LoadBalancer AWS)
 ```
+
+---
+
+## Deux modes de déploiement
+
+### Mode `local` — Minikube / Kind
+
+- Utilise les manifests YAML dans `k8s/`
+- Le frontend est exposé via `NodePort`
+- Accès après déploiement :
+  ```bash
+  # Option 1 — URL automatique Minikube
+  minikube service frontend-service -n portfolio --url
+
+  # Option 2 — Port-forward manuel
+  kubectl port-forward svc/frontend-service 8080:80 -n portfolio
+  # → http://localhost:8080
+  ```
+
+### Mode `aws` — EKS via Terraform
+
+- Utilise Terraform dans `terraform/02-app/`
+- Le frontend est exposé via un **AWS Classic Load Balancer**
+- L'URL est affichée à la fin du stage : `terraform output frontend_url`
+- Prérequis : cluster EKS créé au préalable via `terraform/01-infra/`
+
+---
+
+## Credentials Jenkins requis
+
+| ID credential       | Type                  | Utilisé par          |
+|---------------------|-----------------------|----------------------|
+| `dockerhub-credentials` | Username/Password | Build + Push Docker  |
+| `aws-credentials`       | Username/Password | Terraform (AWS)      |
+| `mongo-password`        | Secret text       | Terraform (AWS)      |
+
+> Pour le déploiement **local**, seul `dockerhub-credentials` est nécessaire.
 
 ---
 

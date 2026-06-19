@@ -13,6 +13,16 @@ pipeline {
             defaultValue: true,
             description: 'Déployer sur AWS EKS via Terraform'
         )
+        booleanParam(
+            name: 'DESTROY_AWS',
+            defaultValue: false,
+            description: '⚠️  DESTROY — Détruire toute l\'infra AWS (02-app puis 01-infra). Désactive les déploiements.'
+        )
+        booleanParam(
+            name: 'DESTROY_LOCAL',
+            defaultValue: false,
+            description: '⚠️  DESTROY — Supprimer tous les objets Kubernetes locaux (namespace portfolio)'
+        )
         string(
             name: 'IMAGE_TAG_OVERRIDE',
             defaultValue: '',
@@ -116,8 +126,74 @@ pipeline {
             }
         }
 
-        // ─── 4. DÉPLOIEMENTS EN PARALLÈLE ───────────────────────────────────
+        // ─── 4. DESTROY EN PARALLÈLE (si demandé) ───────────────────────────
+        stage('Destroy') {
+            when {
+                expression { params.DESTROY_AWS == true || params.DESTROY_LOCAL == true }
+            }
+            parallel {
+
+                // ─── 4a. DESTROY LOCAL ───────────────────────────────────────
+                stage('Destroy Local (Minikube)') {
+                    when {
+                        expression { params.DESTROY_LOCAL == true }
+                    }
+                    steps {
+                        sh """
+                            echo "=== ⚠️  DESTROY Kubernetes LOCAL ==="
+                            kubectl delete namespace ${K8S_NAMESPACE} --ignore-not-found=true
+                            echo "=== Namespace ${K8S_NAMESPACE} supprimé ==="
+                        """
+                    }
+                    post {
+                        success { echo "✅ Destroy LOCAL réussi — namespace ${K8S_NAMESPACE} supprimé" }
+                        failure { echo "❌ Destroy LOCAL échoué" }
+                    }
+                }
+
+                // ─── 4b. DESTROY AWS ─────────────────────────────────────────
+                stage('Destroy AWS (Terraform)') {
+                    when {
+                        expression { params.DESTROY_AWS == true }
+                    }
+                    environment {
+                        AWS_CREDENTIALS           = credentials('aws-credentials')
+                        AWS_ACCESS_KEY_ID         = "${AWS_CREDENTIALS_USR}"
+                        AWS_SECRET_ACCESS_KEY     = "${AWS_CREDENTIALS_PSW}"
+                        TF_VAR_mongo_password     = credentials('mongo-password')
+                        TF_VAR_backend_image_tag  = "${IMAGE_TAG}"
+                        TF_VAR_frontend_image_tag = "${IMAGE_TAG}"
+                    }
+                    steps {
+                        sh """
+                            echo "=== ⚠️  DESTROY 02-app (K8S sur EKS) ==="
+                            cd '${TF_DIR_APP}'
+                            terraform init -input=false
+                            terraform destroy -input=false -auto-approve
+
+                            echo "=== ⚠️  DESTROY 01-infra (EKS + VPC) ==="
+                            cd '${WORKSPACE}/V10-With-Jenkins-SonarQube-K8S-Terraform/terraform/01-infra'
+                            terraform init -input=false
+                            terraform destroy -input=false -auto-approve
+
+                            echo "=== Infra AWS entièrement détruite ==="
+                        """
+                    }
+                    post {
+                        success { echo "✅ Destroy AWS réussi — EKS + VPC supprimés" }
+                        failure { echo "❌ Destroy AWS échoué — vérifier l'état Terraform dans S3" }
+                    }
+                }
+
+            } // fin parallel Destroy
+        } // fin Destroy
+
+        // ─── 5. DÉPLOIEMENTS EN PARALLÈLE ───────────────────────────────────
         stage('Deploy') {
+            when {
+                // Ne pas déployer si on est en mode Destroy
+                expression { params.DESTROY_AWS == false && params.DESTROY_LOCAL == false }
+            }
             parallel {
 
                 // ─── 4a. LOCAL — Minikube / Kind ────────────────────────────
@@ -214,29 +290,33 @@ pipeline {
             """
         }
         success {
-            echo "Pipeline réussi — Build #${BUILD_NUMBER} — Local:${params.DEPLOY_LOCAL} / AWS:${params.DEPLOY_AWS}"
+            echo "Pipeline réussi — Build #${BUILD_NUMBER} — Local:${params.DEPLOY_LOCAL} / AWS:${params.DEPLOY_AWS} / DestroyAWS:${params.DESTROY_AWS} / DestroyLocal:${params.DESTROY_LOCAL}"
             mail to: 'etablissementdinformatiqueacad@gmail.com',
-                 subject: "[SUCCESS] Jenkins Build #${BUILD_NUMBER} — Portfolio (local:${params.DEPLOY_LOCAL} / aws:${params.DEPLOY_AWS})",
+                 subject: "[SUCCESS] Jenkins Build #${BUILD_NUMBER} — Portfolio",
                  body: """Pipeline terminé avec succès.
 
-Build    : #${BUILD_NUMBER}
-Local    : ${params.DEPLOY_LOCAL}
-AWS      : ${params.DEPLOY_AWS}
-Branche  : ${env.GIT_BRANCH}
-Image    : ${IMAGE_TAG}
+Build        : #${BUILD_NUMBER}
+Deploy Local : ${params.DEPLOY_LOCAL}
+Deploy AWS   : ${params.DEPLOY_AWS}
+Destroy Local: ${params.DESTROY_LOCAL}
+Destroy AWS  : ${params.DESTROY_AWS}
+Branche      : ${env.GIT_BRANCH}
+Image        : ${IMAGE_TAG}
 
 Voir les logs : ${BUILD_URL}"""
         }
         failure {
-            echo "Pipeline échoué — Build #${BUILD_NUMBER} — Local:${params.DEPLOY_LOCAL} / AWS:${params.DEPLOY_AWS}"
+            echo "Pipeline échoué — Build #${BUILD_NUMBER}"
             mail to: 'etablissementdinformatiqueacad@gmail.com',
-                 subject: "[FAILURE] Jenkins Build #${BUILD_NUMBER} — Portfolio (local:${params.DEPLOY_LOCAL} / aws:${params.DEPLOY_AWS})",
+                 subject: "[FAILURE] Jenkins Build #${BUILD_NUMBER} — Portfolio",
                  body: """Pipeline échoué.
 
-Build    : #${BUILD_NUMBER}
-Local    : ${params.DEPLOY_LOCAL}
-AWS      : ${params.DEPLOY_AWS}
-Branche  : ${env.GIT_BRANCH}
+Build        : #${BUILD_NUMBER}
+Deploy Local : ${params.DEPLOY_LOCAL}
+Deploy AWS   : ${params.DEPLOY_AWS}
+Destroy Local: ${params.DESTROY_LOCAL}
+Destroy AWS  : ${params.DESTROY_AWS}
+Branche      : ${env.GIT_BRANCH}
 
 Voir les logs : ${BUILD_URL}"""
         }
