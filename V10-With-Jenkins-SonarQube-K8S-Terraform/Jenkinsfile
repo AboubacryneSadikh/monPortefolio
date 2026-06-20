@@ -198,9 +198,167 @@ pipeline {
 
                 // ─── 5a. LOCAL — Minikube / Kind ────────────────────────────
                 stage('Deploy Local (Minikube)') {
+
     when {
         expression { params.DEPLOY_LOCAL == true }
     }
+
+    environment {
+        MONGO_PASSWORD = credentials('mongo-password')
+    }
+
+    steps {
+
+        sh """
+
+        echo "=== Déploiement sur Kubernetes LOCAL ==="
+
+        echo "=== Vérification du dossier k8s ==="
+
+        ls -la ${K8S_DIR}
+
+        find ${K8S_DIR} -name "*mongodb*"
+
+
+
+        echo "=== Informations Kubernetes ==="
+
+        kubectl config current-context || true
+
+        kubectl cluster-info || true
+
+        kubectl get nodes || true
+
+
+
+        echo "=== Mise à jour des images Docker ==="
+
+        sed -i "s|image: ${DOCKERHUB_USERNAME}/portfolio-backend:.*|image: ${BACKEND_IMAGE}:${IMAGE_TAG}|g" \
+            ${K8S_DIR}/backend-deployment.yaml
+
+        sed -i "s|image: ${DOCKERHUB_USERNAME}/portfolio-frontend:.*|image: ${FRONTEND_IMAGE}:${IMAGE_TAG}|g" \
+            ${K8S_DIR}/frontend-deployment.yaml
+
+
+
+        echo "=== Génération du secret MongoDB ==="
+
+        MONGO_USER_B64=\$(echo -n "mongo" | base64)
+
+        MONGO_PASS_B64=\$(echo -n "\$MONGO_PASSWORD" | base64)
+
+        sed "s|<BASE64_USERNAME>|\$MONGO_USER_B64|g; s|<BASE64_PASSWORD>|\$MONGO_PASS_B64|g" \
+            ${K8S_DIR}/mongodb-secret.example.yaml \
+            > ${K8S_DIR}/mongodb-secret.yaml
+
+
+
+        echo "=== Application des manifests ==="
+
+        kubectl apply -f ${K8S_DIR}/namespace.yaml
+
+        kubectl apply -f ${K8S_DIR}/mongodb-secret.yaml
+
+        kubectl apply -f ${K8S_DIR}/mongodb-service.yaml
+
+        kubectl apply -f ${K8S_DIR}/mongodb-statefulset.yaml
+
+
+
+        echo "=== Attente de MongoDB ==="
+
+        kubectl rollout status statefulset/mongodb \
+            -n ${K8S_NAMESPACE} \
+            --timeout=300s
+
+
+
+        echo "=== Déploiement Backend ==="
+
+        kubectl apply -f ${K8S_DIR}/backend-service.yaml
+
+        kubectl apply -f ${K8S_DIR}/backend-deployment.yaml
+
+
+
+        echo "=== Attente Backend ==="
+
+        kubectl rollout status deployment/backend \
+            -n ${K8S_NAMESPACE} \
+            --timeout=300s
+
+
+
+        echo "=== Déploiement Frontend ==="
+
+        kubectl apply -f ${K8S_DIR}/frontend-service.yaml
+
+        kubectl apply -f ${K8S_DIR}/frontend-deployment.yaml
+
+
+
+        echo "=== Attente Frontend ==="
+
+        kubectl rollout status deployment/frontend \
+            -n ${K8S_NAMESPACE} \
+            --timeout=300s
+
+
+
+        echo "=== Pods ==="
+
+        kubectl get pods -n ${K8S_NAMESPACE}
+
+
+
+        echo "=== Services ==="
+
+        kubectl get svc -n ${K8S_NAMESPACE}
+
+
+
+        echo "=== URL d'accès ==="
+
+        echo "minikube service frontend-service -n ${K8S_NAMESPACE} --url"
+
+        echo "ou"
+
+        echo "kubectl port-forward svc/frontend-service 8080:80 -n ${K8S_NAMESPACE}"
+
+        """
+    }
+
+    post {
+
+        success {
+
+            echo "✅ Déploiement LOCAL réussi — Build #${BUILD_NUMBER}"
+
+        }
+
+        failure {
+
+            echo "❌ Déploiement LOCAL échoué — Build #${BUILD_NUMBER}"
+
+            sh """
+
+            echo "=== Diagnostic ==="
+
+            kubectl get pods -n ${K8S_NAMESPACE} || true
+
+            kubectl describe pods -n ${K8S_NAMESPACE} || true
+
+            kubectl get events -n ${K8S_NAMESPACE} \
+                --sort-by=.metadata.creationTimestamp || true
+
+            kubectl logs deployment/backend \
+                -n ${K8S_NAMESPACE} || true
+
+            """
+
+        }
+    }
+}
 
     environment {
         MONGO_PASSWORD = credentials('mongo-password')
