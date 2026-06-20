@@ -196,10 +196,13 @@ pipeline {
             }
             parallel {
 
-                // ─── 4a. LOCAL — Minikube / Kind ────────────────────────────
+                // ─── 5a. LOCAL — Minikube / Kind ────────────────────────────
                 stage('Deploy Local (Minikube)') {
                     when {
                         expression { params.DEPLOY_LOCAL == true }
+                    }
+                    environment {
+                        MONGO_CREDS = credentials('mongo-password')
                     }
                     steps {
                         sh """
@@ -210,6 +213,10 @@ pipeline {
                                 ${K8S_DIR}/backend-deployment.yaml
                             sed -i "s|image: ${DOCKERHUB_USERNAME}/portfolio-frontend:.*|image: ${FRONTEND_IMAGE}:${IMAGE_TAG}|g" \
                                 ${K8S_DIR}/frontend-deployment.yaml
+
+                            echo "=== Génération du secret MongoDB ==="
+                            sed "s|<BASE64_USERNAME>|\$(echo -n '\$MONGO_CREDS_USR' | base64)|; s|<BASE64_PASSWORD>|\$(echo -n '\$MONGO_CREDS_PSW' | base64)|" \
+                                ${K8S_DIR}/mongodb-secret.yaml.example > ${K8S_DIR}/mongodb-secret.yaml
 
                             echo "=== Application des manifests ==="
                             kubectl apply -f ${K8S_DIR}/namespace.yaml
@@ -238,7 +245,7 @@ pipeline {
                     }
                 }
 
-                // ─── 4b. AWS — EKS via Terraform ────────────────────────────
+                // ─── 5b. AWS — EKS via Terraform ────────────────────────────
                 stage('Deploy AWS (EKS + Terraform)') {
                     when {
                         expression { params.DEPLOY_AWS == true }
