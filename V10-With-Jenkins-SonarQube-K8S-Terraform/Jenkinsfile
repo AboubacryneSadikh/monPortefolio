@@ -198,53 +198,100 @@ pipeline {
 
                 // ─── 5a. LOCAL — Minikube / Kind ────────────────────────────
                 stage('Deploy Local (Minikube)') {
-                    when {
-                        expression { params.DEPLOY_LOCAL == true }
-                    }
-                    environment {
-                        MONGO_PASSWORD = credentials('mongo-password')
-                    }
-                    steps {
-                        sh """
-                            echo "=== Déploiement sur Kubernetes LOCAL ==="
+    when {
+        expression { params.DEPLOY_LOCAL == true }
+    }
 
-                            # Mise à jour des tags dans les deployments
-                            sed -i "s|image: ${DOCKERHUB_USERNAME}/portfolio-backend:.*|image: ${BACKEND_IMAGE}:${IMAGE_TAG}|g" \
-                                ${K8S_DIR}/backend-deployment.yaml
-                            sed -i "s|image: ${DOCKERHUB_USERNAME}/portfolio-frontend:.*|image: ${FRONTEND_IMAGE}:${IMAGE_TAG}|g" \
-                                ${K8S_DIR}/frontend-deployment.yaml
+    environment {
+        MONGO_PASSWORD = credentials('mongo-password')
+    }
 
-                            echo "=== Génération du secret MongoDB ==="
-                            sed "s|<BASE64_USERNAME>|\$(echo -n 'mongo' | base64)|; s|<BASE64_PASSWORD>|\$(echo -n \\"\$MONGO_PASSWORD\\" | base64)|" \
-                                ${K8S_DIR}/mongodb-secret.example.yaml > ${K8S_DIR}/mongodb-secret.yaml
+    steps {
 
-                            echo "=== Application des manifests ==="
-                            kubectl apply -f ${K8S_DIR}/namespace.yaml
-                            kubectl apply -f ${K8S_DIR}/mongodb-secret.yaml
-                            kubectl apply -f ${K8S_DIR}/mongodb-service.yaml
-                            kubectl apply -f ${K8S_DIR}/mongodb-statefulset.yaml
-                            kubectl apply -f ${K8S_DIR}/backend-service.yaml
-                            kubectl apply -f ${K8S_DIR}/backend-deployment.yaml
-                            kubectl apply -f ${K8S_DIR}/frontend-service.yaml
-                            kubectl apply -f ${K8S_DIR}/frontend-deployment.yaml
+        sh """
 
-                            echo "=== Attente du rollout backend ==="
-                            kubectl rollout status deployment/backend  -n ${K8S_NAMESPACE} --timeout=120s
+            echo "=== Déploiement sur Kubernetes LOCAL ==="
 
-                            echo "=== Attente du rollout frontend ==="
-                            kubectl rollout status deployment/frontend -n ${K8S_NAMESPACE} --timeout=120s
+            echo "=== Vérification du dossier k8s ==="
 
-                            echo "=== URL d'accès local ==="
-                            echo "Lancer : minikube service frontend-service -n ${K8S_NAMESPACE} --url"
-                            echo "Ou     : kubectl port-forward svc/frontend-service 8080:80 -n ${K8S_NAMESPACE}"
-                        """
-                    }
-                    post {
-                        success { echo "✅ Déploiement LOCAL réussi — Build #${BUILD_NUMBER}" }
-                        failure { echo "❌ Déploiement LOCAL échoué — Build #${BUILD_NUMBER}" }
-                    }
-                }
+            ls -la ${K8S_DIR}
 
+            find ${K8S_DIR} -name "*mongodb*"
+
+            echo "=== Mise à jour des images Docker ==="
+
+            sed -i "s|image: ${DOCKERHUB_USERNAME}/portfolio-backend:.*|image: ${BACKEND_IMAGE}:${IMAGE_TAG}|g" \
+                ${K8S_DIR}/backend-deployment.yaml
+
+            sed -i "s|image: ${DOCKERHUB_USERNAME}/portfolio-frontend:.*|image: ${FRONTEND_IMAGE}:${IMAGE_TAG}|g" \
+                ${K8S_DIR}/frontend-deployment.yaml
+
+
+            echo "=== Génération du secret MongoDB ==="
+
+            MONGO_USER_B64=\$(echo -n "mongo" | base64)
+
+            MONGO_PASS_B64=\$(echo -n "\$MONGO_PASSWORD" | base64)
+
+            sed "s|<BASE64_USERNAME>|\$MONGO_USER_B64|g; s|<BASE64_PASSWORD>|\$MONGO_PASS_B64|g" \
+                ${K8S_DIR}/mongodb-secret.example.yaml \
+                > ${K8S_DIR}/mongodb-secret.yaml
+
+
+            echo "=== Application des manifests ==="
+
+            kubectl apply -f ${K8S_DIR}/namespace.yaml
+
+            kubectl apply -f ${K8S_DIR}/mongodb-secret.yaml
+
+            kubectl apply -f ${K8S_DIR}/mongodb-service.yaml
+
+            kubectl apply -f ${K8S_DIR}/mongodb-statefulset.yaml
+
+            kubectl apply -f ${K8S_DIR}/backend-service.yaml
+
+            kubectl apply -f ${K8S_DIR}/backend-deployment.yaml
+
+            kubectl apply -f ${K8S_DIR}/frontend-service.yaml
+
+            kubectl apply -f ${K8S_DIR}/frontend-deployment.yaml
+
+
+            echo "=== Attente du rollout backend ==="
+
+            kubectl rollout status deployment/backend \
+                -n ${K8S_NAMESPACE} \
+                --timeout=120s
+
+
+            echo "=== Attente du rollout frontend ==="
+
+            kubectl rollout status deployment/frontend \
+                -n ${K8S_NAMESPACE} \
+                --timeout=120s
+
+
+            echo "=== URL d'accès ==="
+
+            echo "minikube service frontend-service -n ${K8S_NAMESPACE} --url"
+
+            echo "ou"
+
+            echo "kubectl port-forward svc/frontend-service 8080:80 -n ${K8S_NAMESPACE}"
+
+        """
+    }
+
+    post {
+        success {
+            echo "✅ Déploiement LOCAL réussi — Build #${BUILD_NUMBER}"
+        }
+
+        failure {
+            echo "❌ Déploiement LOCAL échoué — Build #${BUILD_NUMBER}"
+        }
+    }
+}
                 // ─── 5b. AWS — EKS via Terraform ────────────────────────────
                 stage('Deploy AWS (EKS + Terraform)') {
                     when {
