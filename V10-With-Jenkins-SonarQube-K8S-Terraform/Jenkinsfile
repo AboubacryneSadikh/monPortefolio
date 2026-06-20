@@ -202,7 +202,7 @@ pipeline {
                         expression { params.DEPLOY_LOCAL == true }
                     }
                     environment {
-                        MONGO_CREDS = credentials('mongo-password')
+                        MONGO_PASSWORD = credentials('mongo-password')
                     }
                     steps {
                         sh """
@@ -215,8 +215,8 @@ pipeline {
                                 ${K8S_DIR}/frontend-deployment.yaml
 
                             echo "=== Génération du secret MongoDB ==="
-                            sed "s|<BASE64_USERNAME>|\$(echo -n '\$MONGO_CREDS_USR' | base64)|; s|<BASE64_PASSWORD>|\$(echo -n '\$MONGO_CREDS_PSW' | base64)|" \
-                                ${K8S_DIR}/mongodb-secret.yaml.example > ${K8S_DIR}/mongodb-secret.yaml
+                            sed "s|<BASE64_USERNAME>|\$(echo -n 'mongo' | base64)|; s|<BASE64_PASSWORD>|\$(echo -n \\"\$MONGO_PASSWORD\\" | base64)|" \
+                                ${K8S_DIR}/mongodb-secret.example.yaml > ${K8S_DIR}/mongodb-secret.yaml
 
                             echo "=== Application des manifests ==="
                             kubectl apply -f ${K8S_DIR}/namespace.yaml
