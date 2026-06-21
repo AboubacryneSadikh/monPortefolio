@@ -1,53 +1,46 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
-  name: mongodb-exporter
+  name: node-exporter
   namespace: monitoring
 spec:
-  replicas: 1
   selector:
     matchLabels:
-      app: mongodb-exporter
+      app: node-exporter
   template:
     metadata:
       labels:
-        app: mongodb-exporter
+        app: node-exporter
     spec:
+      hostNetwork: true
+      hostPID: true
       containers:
-        - name: mongodb-exporter
-          image: percona/mongodb_exporter:0.40
+        - name: node-exporter
+          image: prom/node-exporter:v1.8.0
           args:
-            - "--mongodb.uri=mongodb://$(MONGO_USERNAME):$(MONGO_PASSWORD)@mongodb-service.portfolio.svc.cluster.local:27017/admin"
-            - "--collect-all"
-          env:
-            - name: MONGO_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: mongodb-secret
-                  key: mongo-username
-            - name: MONGO_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: mongodb-secret
-                  key: mongo-password
+            - "--path.rootfs=/host"
           ports:
-            - containerPort: 9216
-          resources:
-            requests:
-              memory: "64Mi"
-              cpu: "50m"
-            limits:
-              memory: "128Mi"
-              cpu: "100m"
+            - containerPort: 9100
+          volumeMounts:
+            - name: root
+              mountPath: /host
+              readOnly: true
+      volumes:
+        - name: root
+          hostPath:
+            path: /
+      tolerations:
+        - effect: NoSchedule
+          operator: Exists
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: mongodb-exporter
+  name: node-exporter
   namespace: monitoring
 spec:
   selector:
-    app: mongodb-exporter
+    app: node-exporter
   ports:
-    - port: 9216
-      targetPort: 9216
+    - port: 9100
+      targetPort: 9100

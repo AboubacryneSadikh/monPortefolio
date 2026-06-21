@@ -9,5 +9,5 @@ resources:
   - prometheus-service.yaml
   - grafana-deployment.yaml
   - grafana-service.yaml
-  - mongodb-exporter.yaml
+  - node-exporter.yaml 
   - kube-state-metrics.yaml
