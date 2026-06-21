@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - monitoring-namespace.yaml     
+  - mongodb-secret.yaml
+  - prometheus-rbac.yaml
+  - prometheus-configmap.yaml
+  - prometheus-deployment.yaml
+  - prometheus-service.yaml
+  - grafana-deployment.yaml
+  - grafana-service.yaml
+  - mongodb-exporter.yaml
+  - kube-state-metrics.yaml
