@@ -27,10 +27,15 @@ data:
         static_configs:
           - targets: ['mongodb-exporter.monitoring.svc.cluster.local:9216']
 
-      # Scrape kube-state-metrics  🆕
+      # Scrape kube-state-metrics
       - job_name: 'kube-state-metrics'
         static_configs:
           - targets: ['kube-state-metrics.monitoring.svc.cluster.local:8080']
+
+      # Scrape Node Exporter via IP directe (192.168.49.2)
+      - job_name: 'node-exporter'
+        static_configs:
+          - targets: ['192.168.49.2:9100']
 
       # Scrape les pods via annotations Prometheus
       - job_name: 'kubernetes-pods'
@@ -39,9 +44,6 @@ data:
             namespaces:
               names:
                 - portfolio
-      - job_name: 'node-exporter'
-        static_configs:
-          - targets: ['node-exporter.monitoring.svc.cluster.local:9100']          
         relabel_configs:
           - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
             action: keep
